@@ -75,6 +75,7 @@ dkms.conf
 # Executables
 
 ### VisualStudioCode ###
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -94,3 +95,11 @@ dkms.conf
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/c,c++,visualstudiocode
+
+data/**.csv
+
+bin
+bin/*
+
+obj
+obj/*

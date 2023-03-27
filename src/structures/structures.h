@@ -1,0 +1,26 @@
+#pragma once
+#ifndef _STRUCTURES_H_
+#define _STRUCTURES_H_
+
+#include <stdio.h>
+
+#define TOTAL_DESTINY_ID 1159
+
+typedef struct Node {
+	unsigned short dstid;
+	unsigned char hod;
+	struct Node *next;
+} node_t;
+
+typedef struct {
+	node_t *headers_list[TOTAL_DESTINY_ID];
+} hash_t;
+
+node_t *new_node(unsigned short dstid, unsigned char hod);
+void free_list(node_t *head);
+node_t *push(node_t *head, node_t *node);
+
+hash_t *new_hash();
+int insert(hash_t *ptr_hash, int srcid, node_t *node);
+
+#endif // _STRUCTURES_H_
