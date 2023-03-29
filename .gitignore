@@ -96,8 +96,12 @@ dkms.conf
 
 # End of https://www.toptal.com/developers/gitignore/api/c,c++,visualstudiocode
 
-data/**.csv
+<<<<<<< HEAD
+data/raw/*
 
+=======
+data/raw/**
+>>>>>>> 885786a
 bin
 bin/*
 

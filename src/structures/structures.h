@@ -21,6 +21,7 @@ void free_list(node_t *head);
 node_t *push(node_t *head, node_t *node);
 
 hash_t *new_hash();
+int hash(int srcid);
 int insert(hash_t *ptr_hash, int srcid, node_t *node);
 
 #endif // _STRUCTURES_H_

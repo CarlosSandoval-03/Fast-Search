@@ -45,9 +45,14 @@ hash_t *new_hash()
 	return ptr_hash;
 }
 
+int hash(int srcid)
+{
+	return srcid - 1;
+}
+
 int insert(hash_t *ptr_hash, int srcid, node_t *node)
 {
-	const int index = srcid - 1;
+	const int index = hash(srcid);
 	node_t *head_list = ptr_hash->headers_list[index];
 	push(head_list, node);
 
