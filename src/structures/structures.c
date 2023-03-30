@@ -58,3 +58,16 @@ int insert(hash_t *ptr_hash, int srcid, node_t *node)
 
 	return index;
 }
+
+index_t *new_index(unsigned short srcid, unsigned long start_pos)
+{
+	index_t *ptr_index = (index_t *)malloc(sizeof(index_t));
+	if (ptr_index == NULL) {
+		perror("CREATE_INDEX: NULL POINTER");
+		exit(EXIT_FAILURE);
+	}
+
+	ptr_index->srcid = srcid;
+	ptr_index->start_pos = start_pos;
+	return ptr_index;
+}
