@@ -31,3 +31,18 @@ unsigned long index_list(unsigned short srcid, node_t *head)
 
 	return start_pos;
 }
+
+void remove_first_line(FILE *fp)
+{
+	char curr_char = '\0';
+	while (curr_char != '\n') {
+		curr_char = fgetc(fp);
+	}
+	fgetc(fp); // remove \n
+}
+
+void process_data()
+{
+	FILE *fp = fopen(DEFAULT_PATH_DATA, "r");
+	remove_first_line(fp);
+}
