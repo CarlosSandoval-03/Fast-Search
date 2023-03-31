@@ -51,20 +51,38 @@ int *clear_int_array(int *array, int size)
 	return array;
 }
 
-int *get_numbers(const char *buffer, int num_params)
+int *get_numbers(char *buffer, int num_params)
 {
 	int *values = (int *)malloc(sizeof(int) * num_params);
 	clear_int_array(values, num_params);
 
-	char *token = strtok(buffer, (const char *)DELIMITER_CSV);
+	char *token = strtok(buffer, (const char *)DELIMITER_CSV_STRING);
 	for (int i = 0; i < num_params; i++) {
 		if (token == NULL)
 			break;
 
 		values[i] = atoi(token);
-		token = strtok(NULL, (const char *)DELIMITER_CSV);
+		token = strtok(NULL, (const char *)DELIMITER_CSV_STRING);
 	}
 	return values;
+}
+
+const char *get_line(FILE *fp, char *buffer, int size_buff)
+{
+	int i = 0;
+	int k = 0;
+	while (i < NUM_PARAMS_TO_TAKE || k < size_buff) {
+		char curr_char = fgetc(fp);
+		if (curr_char == DELIMITER_CSV_CHAR) {
+			i++;
+		}
+
+		buffer[k] = curr_char;
+	}
+
+	buffer[size_buff] = '\0'; // String null terminated
+
+	return buffer;
 }
 
 void process_data()
@@ -74,6 +92,8 @@ void process_data()
 
 	while (!feof(fp)) {
 		// Read line
+		char buffer[1024];
+		get_line(fp, buffer, 1024);
 
 		// Get numbers
 	}

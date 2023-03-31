@@ -96,14 +96,10 @@ dkms.conf
 
 # End of https://www.toptal.com/developers/gitignore/api/c,c++,visualstudiocode
 
-<<<<<<< HEAD
 data/raw/*
 
-=======
-data/raw/**
->>>>>>> 885786a
-bin
-bin/*
+build
+build/*
 
 obj
 obj/*
