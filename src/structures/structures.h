@@ -9,6 +9,7 @@
 typedef struct Node {
 	unsigned short dstid;
 	unsigned char hod;
+	float mean_travel_time;
 	struct Node *next;
 } node_t;
 
@@ -21,9 +22,9 @@ typedef struct {
 	unsigned long start_pos;
 } index_t;
 
-node_t *new_node(unsigned short dstid, unsigned char hod);
+node_t *new_node(unsigned short dstid, unsigned char hod, float mean_travel_time);
 void free_list(node_t *head);
-node_t *push(node_t *head, node_t *node);
+node_t *push(node_t **head, node_t *node);
 
 hash_t *new_hash();
 int hash(int srcid);

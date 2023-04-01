@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include "structures.h"
+#include "../pre_process/pre_process.h"
+#include "../file/file.h"
 
-node_t *new_node(unsigned short dstid, unsigned char hod)
+node_t *new_node(unsigned short dstid, unsigned char hod, float mean_travel_time)
 {
 	node_t *node = (node_t *)malloc(sizeof(node_t));
 	if (node == NULL) {
@@ -11,6 +13,7 @@ node_t *new_node(unsigned short dstid, unsigned char hod)
 
 	node->dstid = dstid;
 	node->hod = hod;
+	node->mean_travel_time = mean_travel_time;
 	return node;
 }
 
@@ -24,14 +27,22 @@ void free_list(node_t *head)
 	}
 }
 
-node_t *push(node_t *head, node_t *node)
+node_t *push(node_t **head, node_t *node)
 {
-	node_t *curr_node = head;
-	while (curr_node->next != NULL) {
-		curr_node = curr_node->next;
+	if (head == NULL) {
+		perror("PUSH: NULL POINTER HEAD");
+		exit(EXIT_FAILURE);
 	}
-	curr_node->next = node;
-	return curr_node;
+
+	if (node == NULL) {
+		perror("PUSH: NULL POINTER NODE");
+		exit(EXIT_FAILURE);
+	}
+
+	node->next = *head;
+	*head = node;
+
+	return node;
 }
 
 hash_t *new_hash()
@@ -40,6 +51,10 @@ hash_t *new_hash()
 	if (ptr_hash == NULL) {
 		perror("CREATE_HASH: NULL POINTER");
 		exit(EXIT_FAILURE);
+	}
+
+	for (int i = 0; i < TOTAL_DESTINY_ID; i++) {
+		ptr_hash->headers_list[i] = NULL;
 	}
 
 	return ptr_hash;
@@ -52,10 +67,25 @@ int hash(int srcid)
 
 int insert(hash_t *ptr_hash, int srcid, node_t *node)
 {
-	const int index = hash(srcid);
-	node_t *head_list = ptr_hash->headers_list[index];
-	push(head_list, node);
+	if (ptr_hash == NULL) {
+		perror("INSERT: NULL POINTER HASH");
+		exit(EXIT_FAILURE);
+	}
 
+	if (node == NULL) {
+		perror("INSERT: NULL POINTER NODE");
+		exit(EXIT_FAILURE);
+	}
+
+	const int index = hash(srcid);
+	node_t *head_list = (node_t *)ptr_hash->headers_list[index];
+
+	if (head_list == NULL) {
+		ptr_hash->headers_list[index] = node;
+		return index;
+	}
+
+	push(&head_list, node);
 	return index;
 }
 

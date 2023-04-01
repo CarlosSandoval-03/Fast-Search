@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "./file.h"
+#include "../pre_process/pre_process.h"
 
 FILE *open_file(char const *path_file, char const *mode)
 {
@@ -11,4 +13,12 @@ FILE *open_file(char const *path_file, char const *mode)
 	}
 
 	return file;
+}
+
+void remove_line(FILE *fp)
+{
+	char curr_char = '\0';
+	while (curr_char != '\n') {
+		curr_char = fgetc(fp);
+	}
 }

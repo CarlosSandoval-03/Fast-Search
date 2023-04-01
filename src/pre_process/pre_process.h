@@ -11,8 +11,12 @@
 #define DELIMITER_CSV_STRING ","
 #define DELIMITER_CSV_CHAR ','
 #define NUM_PARAMS_TO_TAKE 4
+#define NUM_PARAMS_INT 3
 
-unsigned int write_list(node_t *head);
-unsigned long index_list(unsigned short srcid, node_t *head);
+#define BUFFER_SIZE 1024
+
+long write_list(node_t *head);
+void clear_buffer(char *buffer, int size_buff);
+void process_data();
 
 #endif // _PRE_PROCESS_H_
