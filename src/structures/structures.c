@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "structures.h"
-#include "../pre_process/pre_process.h"
 #include "../file/file.h"
 
 node_t *new_node(unsigned short dstid, unsigned char hod, float mean_travel_time)
@@ -78,14 +77,7 @@ int insert(hash_t *ptr_hash, int srcid, node_t *node)
 	}
 
 	const int index = hash(srcid);
-	node_t *head_list = (node_t *)ptr_hash->headers_list[index];
-
-	if (head_list == NULL) {
-		ptr_hash->headers_list[index] = node;
-		return index;
-	}
-
-	push(&head_list, node);
+	push(&(ptr_hash->headers_list[index]), node);
 	return index;
 }
 
