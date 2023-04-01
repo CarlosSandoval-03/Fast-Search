@@ -1,9 +1,8 @@
 #include <stdlib.h>
 #include "structures.h"
-#include "../pre_process/pre_process.h"
 #include "../file/file.h"
 
-node_t *new_node(unsigned short dstid, unsigned char hod, float mean_travel_time)
+node_t *new_node()
 {
 	node_t *node = (node_t *)malloc(sizeof(node_t));
 	if (node == NULL) {
@@ -11,38 +10,42 @@ node_t *new_node(unsigned short dstid, unsigned char hod, float mean_travel_time
 		exit(EXIT_FAILURE);
 	}
 
-	node->dstid = dstid;
-	node->hod = hod;
-	node->mean_travel_time = mean_travel_time;
 	return node;
 }
 
-void free_list(node_t *head)
+node_t *push(node_t **head, unsigned short dstid, unsigned char hod, float mean_travel_time)
 {
-	while (head != NULL) {
-		node_t *next_node = head->next;
-		free(next_node);
-
-		head = head->next;
+	if ((*head) == NULL) {
+		*head = new_node();
+		(*head)->dstid = dstid;
+		(*head)->hod = hod;
+		(*head)->mean_travel_time = mean_travel_time;
+		(*head)->next = NULL;
+		return *head;
 	}
+
+	node_t *n_node = new_node();
+	n_node->dstid = dstid;
+	n_node->hod = hod;
+	n_node->mean_travel_time = mean_travel_time;
+	n_node->next = NULL;
+	n_node->next = *head;
+	*head = n_node;
+
+	return n_node;
 }
 
-node_t *push(node_t **head, node_t *node)
+long write_list(node_t *head, FILE *fp)
 {
-	if (head == NULL) {
-		perror("PUSH: NULL POINTER HEAD");
-		exit(EXIT_FAILURE);
+	long start_pos = ftell(fp);
+	node_t *curr_node = head;
+
+	while (curr_node != NULL) {
+		fwrite(curr_node, sizeof(node_t), 1, fp);
+		curr_node = curr_node->next;
 	}
 
-	if (node == NULL) {
-		perror("PUSH: NULL POINTER NODE");
-		exit(EXIT_FAILURE);
-	}
-
-	node->next = *head;
-	*head = node;
-
-	return node;
+	return start_pos;
 }
 
 hash_t *new_hash()
@@ -53,7 +56,7 @@ hash_t *new_hash()
 		exit(EXIT_FAILURE);
 	}
 
-	for (int i = 0; i < TOTAL_DESTINY_ID; i++) {
+	for (int i = 0; i < HASH_SIZE; i++) {
 		ptr_hash->headers_list[i] = NULL;
 	}
 
@@ -62,30 +65,23 @@ hash_t *new_hash()
 
 int hash(int srcid)
 {
+	if (srcid < 1 || srcid > HASH_SIZE) {
+		printf("srcid: %d\n", srcid);
+		perror("HASH: INVALID SRCID");
+		exit(EXIT_FAILURE);
+	}
 	return srcid - 1;
 }
 
-int insert(hash_t *ptr_hash, int srcid, node_t *node)
+int insert(hash_t *ptr_hash, int srcid, unsigned short dstid, unsigned char hod, float mean_travel_time)
 {
 	if (ptr_hash == NULL) {
 		perror("INSERT: NULL POINTER HASH");
 		exit(EXIT_FAILURE);
 	}
 
-	if (node == NULL) {
-		perror("INSERT: NULL POINTER NODE");
-		exit(EXIT_FAILURE);
-	}
-
 	const int index = hash(srcid);
-	node_t *head_list = (node_t *)ptr_hash->headers_list[index];
-
-	if (head_list == NULL) {
-		ptr_hash->headers_list[index] = node;
-		return index;
-	}
-
-	push(&head_list, node);
+	push(&(ptr_hash->headers_list[index]), dstid, hod, mean_travel_time);
 	return index;
 }
 
@@ -100,4 +96,37 @@ index_t *new_index(unsigned short srcid, unsigned long start_pos)
 	ptr_index->srcid = srcid;
 	ptr_index->start_pos = start_pos;
 	return ptr_index;
+}
+
+void write_hash(hash_t *ptr_hash, FILE *hash_fp, FILE *list_fp)
+{
+	for (int i = 0; i < HASH_SIZE; i++) {
+		// Write list in file
+		long start_pos = ftell(list_fp);
+		node_t *head = ptr_hash->headers_list[i];
+		if (head != NULL) {
+			write_list(head, list_fp);
+		}
+
+		// Save srcid and start_pos in file
+		const unsigned short srcid = i + 1;
+		index_t *index = new_index(srcid, start_pos);
+		fwrite(index, sizeof(index_t), 1, hash_fp);
+		free(index);
+	}
+}
+
+void free_hash(hash_t *ptr_hash)
+{
+	for (int i = 0; i < HASH_SIZE; i++) {
+		node_t *head = ptr_hash->headers_list[i];
+		node_t *curr_node = head;
+		while (curr_node != NULL) {
+			node_t *tmp = curr_node;
+			curr_node = curr_node->next;
+			free(tmp);
+		}
+	}
+
+	free(ptr_hash);
 }

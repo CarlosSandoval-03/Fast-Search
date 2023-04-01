@@ -15,8 +15,6 @@
 
 #define BUFFER_SIZE 1024
 
-long write_list(node_t *head);
 void clear_buffer(char *buffer, int size_buff);
-void process_data();
 
 #endif // _PRE_PROCESS_H_
