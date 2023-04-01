@@ -2,9 +2,9 @@ CC=gcc
 CFLAGS=-Wall -g -pedantic
 SRC_DIR=./src
 BUILD_DIR=./build
-OBJ_DIR=./obj
+OBJ_DIR=./build/objs
 DATA_DIR=./data
-MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/pre_process.o $(OBJ_DIR)/structures.o $(SRC_DIR)/p1-odProgram.c
+MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(SRC_DIR)/p1-odProgram.c
 
 # Build
 build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main
@@ -14,23 +14,11 @@ $(BUILD_DIR)/main: $(MAIN_DEPENDENCIES)
 	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/main $(MAIN_DEPENDENCIES)
 
 # Object files
-$(OBJ_DIR)/file.o: $(SRC_DIR)/file/file.c $(SRC_DIR)/file/file.h $(SRC_DIR)/pre_process/pre_process.h $(SRC_DIR)/structures/structures.h
+$(OBJ_DIR)/file.o: $(SRC_DIR)/file/file.c $(SRC_DIR)/file/file.h $(SRC_DIR)/structures/structures.h
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/file.o -c $(SRC_DIR)/file/file.c
 
-$(OBJ_DIR)/pre_process.o: $(SRC_DIR)/pre_process/pre_process.c $(SRC_DIR)/pre_process/pre_process.h $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h
-	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/pre_process.o -c $(SRC_DIR)/pre_process/pre_process.c
-
-$(OBJ_DIR)/structures.o: $(SRC_DIR)/structures/structures.c $(SRC_DIR)/structures/structures.h $(SRC_DIR)/pre_process/pre_process.h $(SRC_DIR)/file/file.h
+$(OBJ_DIR)/structures.o: $(SRC_DIR)/structures/structures.c $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/structures.o -c $(SRC_DIR)/structures/structures.c
-
-# Unity Test
-SRC_TEST_DIR= $(wildcard $(TEST_DIR)/*.c)
-TEST_DIR=./test
-RESULTS_DIR=./build/test_results
-UNITY_DIR=./unity
-TEST_CFLAGS=-I. -I$(UNITY_DIR) -I$(SRC_DIR) -I$(TEST_DIR) -DTEST
-
-test: $()
 
 # Build dirs
 .PHONY: create_build_dir
