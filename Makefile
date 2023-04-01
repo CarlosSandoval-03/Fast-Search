@@ -5,15 +5,23 @@ BUILD_DIR=./build
 OBJ_DIR=./build/objs
 DATA_DIR=./data
 MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(SRC_DIR)/p1-odProgram.c
+PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(SRC_DIR)/pre_process/pre_process.c
 
-# Build
-build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main
-	@echo "Building..."
+# Build main
+# build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main
+# 	@echo "Building..."
 
-$(BUILD_DIR)/main: $(MAIN_DEPENDENCIES)
-	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/main $(MAIN_DEPENDENCIES)
+# $(BUILD_DIR)/main: $(MAIN_DEPENDENCIES)
+# 	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/main $(MAIN_DEPENDENCIES)
 
-# Object files
+# Build pre_process
+pre_process: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/pre_process
+	@echo "Build pre_process..."
+
+$(BUILD_DIR)/pre_process: $(PRE_PROCESS_DEPENDENCIES)
+	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/pre_process $(PRE_PROCESS_DEPENDENCIES)
+
+# Object files dependencies
 $(OBJ_DIR)/file.o: $(SRC_DIR)/file/file.c $(SRC_DIR)/file/file.h $(SRC_DIR)/structures/structures.h
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/file.o -c $(SRC_DIR)/file/file.c
 

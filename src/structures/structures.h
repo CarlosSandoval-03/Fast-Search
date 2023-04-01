@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-#define TOTAL_DESTINY_ID 1159
+#define HASH_SIZE 1160
 
 typedef struct Node {
 	unsigned short dstid;
@@ -14,7 +14,7 @@ typedef struct Node {
 } node_t;
 
 typedef struct {
-	node_t *headers_list[TOTAL_DESTINY_ID];
+	node_t *headers_list[HASH_SIZE];
 } hash_t;
 
 typedef struct {
@@ -22,14 +22,13 @@ typedef struct {
 	unsigned long start_pos;
 } index_t;
 
-node_t *new_node(unsigned short dstid, unsigned char hod, float mean_travel_time);
-void free_list(node_t *head);
-node_t *push(node_t **head, node_t *node);
+node_t *new_node();
+node_t *push(node_t **head, unsigned short dstid, unsigned char hod, float mean_travel_time);
 
 hash_t *new_hash();
-int hash(int srcid);
-int insert(hash_t *ptr_hash, int srcid, node_t *node);
-
 index_t *new_index(unsigned short srcid, unsigned long start_pos);
+int insert(hash_t *ptr_hash, int srcid, unsigned short dstid, unsigned char hod, float mean_travel_time);
+void write_hash(hash_t *ptr_hash, FILE *hash_fp, FILE *list_fp);
+void free_hash(hash_t *ptr_hash);
 
 #endif // _STRUCTURES_H_
