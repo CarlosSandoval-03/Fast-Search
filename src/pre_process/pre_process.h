@@ -1,4 +1,3 @@
-#pragma once
 #ifndef _PRE_PROCESS_H_
 #define _PRE_PROCESS_H_
 
