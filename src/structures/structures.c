@@ -116,6 +116,32 @@ void write_hash(hash_t *ptr_hash, FILE *hash_fp, FILE *list_fp)
 	}
 }
 
+long get_pos_by_srcid(FILE *hash_fp, unsigned short srcid)
+{
+	if (hash_fp == NULL) {
+		perror("READ_HASH: NULL POINTER FILE HASH");
+		exit(EXIT_FAILURE);
+	}
+
+	while (!feof(hash_fp)) {
+		index_t *index = (index_t *)malloc(sizeof(index_t));
+		if (index == NULL) {
+			perror("READ_HASH: NULL POINTER INDEX");
+			exit(EXIT_FAILURE);
+		}
+
+		fread(index, sizeof(index_t), 1, hash_fp);
+		if (index->srcid == srcid) {
+			unsigned short start_pos = index->start_pos;
+			return start_pos;
+		}
+
+		free(index);
+	}
+
+	return -1;
+}
+
 void free_hash(hash_t *ptr_hash)
 {
 	for (int i = 0; i < HASH_SIZE; i++) {

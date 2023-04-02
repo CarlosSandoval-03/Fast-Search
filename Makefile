@@ -4,24 +4,27 @@ SRC_DIR=./src
 BUILD_DIR=./build
 OBJ_DIR=./build/objs
 DATA_DIR=./data
-MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(SRC_DIR)/p1-odProgram.c
-PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(SRC_DIR)/pre_process/pre_process.c
+MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(OBJ_DIR)/pre_process.o $(SRC_DIR)/p1-odProgram.c
+PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o
 
 # Build main
-# build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main
-# 	@echo "Building..."
+build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main
+	@echo "Building..."
 
-# $(BUILD_DIR)/main: $(MAIN_DEPENDENCIES)
-# 	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/main $(MAIN_DEPENDENCIES)
+$(BUILD_DIR)/main: $(MAIN_DEPENDENCIES)
+	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/main $(MAIN_DEPENDENCIES)
 
 # Build pre_process
-pre_process: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/pre_process
+pre_process: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/run_pre_process
 	@echo "Build pre_process..."
 
-$(BUILD_DIR)/pre_process: $(PRE_PROCESS_DEPENDENCIES)
-	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/pre_process $(PRE_PROCESS_DEPENDENCIES)
+$(BUILD_DIR)/run_pre_process: $(PRE_PROCESS_DEPENDENCIES) $(OBJ_DIR)/pre_process.o $(SRC_DIR)/run_pre_process.c
+	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/run_pre_process $(PRE_PROCESS_DEPENDENCIES) $(OBJ_DIR)/pre_process.o $(SRC_DIR)/run_pre_process.c
 
 # Object files dependencies
+$(OBJ_DIR)/pre_process.o: $(PRE_PROCESS_DEPENDENCIES)
+	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/pre_process.o -c $(SRC_DIR)/pre_process/pre_process.c
+
 $(OBJ_DIR)/file.o: $(SRC_DIR)/file/file.c $(SRC_DIR)/file/file.h $(SRC_DIR)/structures/structures.h
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/file.o -c $(SRC_DIR)/file/file.c
 
@@ -43,7 +46,7 @@ create_data_dir:
 
 # Clean dirs content
 .PHONY: clean clean_obj clean_build
-clean: clean_build clean_obj clean_processed_data
+clean: clean_build clean_obj
 
 .PHONY: clean_obj
 clean_obj:

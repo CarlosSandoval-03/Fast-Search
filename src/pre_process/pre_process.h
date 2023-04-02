@@ -15,5 +15,7 @@
 #define BUFFER_SIZE 1024
 
 void clear_buffer(char *buffer, int size_buff);
+const char *get_data(FILE *fp, char *buffer, int size_buff);
+void process_line(char *buffer, hash_t *ptr_hash);
 
 #endif // _PRE_PROCESS_H_

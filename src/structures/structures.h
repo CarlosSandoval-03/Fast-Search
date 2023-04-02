@@ -28,6 +28,7 @@ hash_t *new_hash();
 index_t *new_index(unsigned short srcid, unsigned long start_pos);
 int insert(hash_t *ptr_hash, int srcid, unsigned short dstid, unsigned char hod, float mean_travel_time);
 void write_hash(hash_t *ptr_hash, FILE *hash_fp, FILE *list_fp);
+long get_pos_by_srcid(FILE *hash_fp, unsigned short srcid);
 void free_hash(hash_t *ptr_hash);
 
 #endif // _STRUCTURES_H_
