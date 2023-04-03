@@ -1,49 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include <sys/types.h>
 #include "./file/file.h"
+#include "./menu/menu.h"
 #include "./pre_process/pre_process.h"
-
-typedef struct {
-	int write;
-	int read;
-} piped_t; // Pipe descriptor
-
-void menu_actions(int option, piped_t *pipe_descriptors)
-{
-	write(pipe_descriptors->write, &option, sizeof(int)); // Send option to search process
-
-	switch (option) {
-	case 1:
-		// Ingresar origen
-		break;
-	case 2:
-		// Ingresar destino
-		break;
-	case 3:
-		// Ingresar hora
-		break;
-	}
-}
-
-void main_menu(piped_t *pipe_descriptors)
-{
-	printf("Bienvenido\n");
-
-	int option = 0;
-	do {
-		printf("\n1. Ingresar origen\n2. Ingresar destino\n3. Ingresar hora\n4. Buscar tiempo de viaje medio\n5. Salir\n\nOpcion: ");
-		scanf("%d", &option);
-
-		while (getc(stdin) != '\n')
-			; // Clear buffer if user registers a string
-		if (option < 1 || option > 5)
-			continue;
-
-		menu_actions(option, pipe_descriptors);
-	} while (option != 5);
-}
 
 int main()
 {
@@ -55,7 +17,7 @@ int main()
 	 * |--------|									|--------|
 	 *
 	 */
-	int main_pipe_fd[2]; // main (write)
+	int main_pipe_fd[2];
 	int main_pipe = pipe(main_pipe_fd);
 	if (main_pipe == -1) {
 		perror("MAIN: PIPE ERROR");
@@ -69,7 +31,7 @@ int main()
 	 * |  Main  | <-------------- | Search |
 	 * |--------|									|--------|
 	 */
-	int search_pipe_fd[2]; // search (write)
+	int search_pipe_fd[2];
 	int search_pipe = pipe(search_pipe_fd);
 	if (search_pipe == -1) {
 		perror("MAIN: PIPE ERROR");
@@ -88,6 +50,22 @@ int main()
 		// Search process
 		close(main_pipe_fd[1]); // Close write
 		close(search_pipe_fd[0]); // Close read
+
+		piped_t *pd_search = (piped_t *)malloc(sizeof(piped_t));
+		pd_search->read = main_pipe_fd[0];
+		pd_search->write = search_pipe_fd[1];
+
+		cache_t *cache = (cache_t *)malloc(sizeof(cache_t));
+		cache->srcid = 0;
+		cache->dstid = 0;
+		cache->hod = -1;
+
+		search_menu(pd_search, cache);
+
+		free(cache);
+		free(pd_search);
+
+		exit(EXIT_SUCCESS);
 	} else {
 		// Main process
 		close(main_pipe_fd[0]); // Close read
@@ -99,6 +77,8 @@ int main()
 		main_menu(pd_main);
 
 		free(pd_main);
+
+		wait(NULL);
 	}
 
 	return EXIT_SUCCESS;
