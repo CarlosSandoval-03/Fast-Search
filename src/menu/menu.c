@@ -64,19 +64,16 @@ void menu_actions(int option, piped_t *pipe_descriptors)
 	const char *message = "";
 	switch (option) {
 	case SRCID_OPTION:
-		// Ingresar origen
 		message = "Ingrese ID del origen: ";
 		min = 0;
 		max = 1160;
 		break;
 	case DSTID_OPTION:
-		// Ingresar destino
 		message = "Ingrese ID del destino: ";
 		min = 0;
 		max = 1160;
 		break;
 	case HOD_OPTION:
-		// Ingresar hora
 		message = "Ingrese hora del dia: ";
 		min = 0;
 		max = 23;
