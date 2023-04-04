@@ -18,4 +18,6 @@ void clear_buffer(char *buffer, int size_buff);
 const char *get_data(FILE *fp, char *buffer, int size_buff);
 void process_line(char *buffer, hash_t *ptr_hash);
 
+float get_mean_time(cache_t *cache);
+
 #endif // _PRE_PROCESS_H_

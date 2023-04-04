@@ -4,8 +4,8 @@ SRC_DIR=./src
 BUILD_DIR=./build
 OBJ_DIR=./build/objs
 DATA_DIR=./data
-MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(OBJ_DIR)/pre_process.o $(SRC_DIR)/p1-odProgram.c
-PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o
+MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(OBJ_DIR)/pre_process.o $(OBJ_DIR)/menu.o $(OBJ_DIR)/search.o $(SRC_DIR)/p1-odProgram.c
+PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o 
 
 # Build main
 build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main
@@ -22,10 +22,16 @@ $(BUILD_DIR)/run_pre_process: $(PRE_PROCESS_DEPENDENCIES) $(OBJ_DIR)/pre_process
 	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/run_pre_process $(PRE_PROCESS_DEPENDENCIES) $(OBJ_DIR)/pre_process.o $(SRC_DIR)/run_pre_process.c
 
 # Object files dependencies
-$(OBJ_DIR)/pre_process.o: $(PRE_PROCESS_DEPENDENCIES)
+$(OBJ_DIR)/search.o: $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h $(SRC_DIR)/menu/menu.h $(SRC_DIR)/search/search.h $(SRC_DIR)/search/search.c
+	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/search.o -c $(SRC_DIR)/search/search.c
+
+$(OBJ_DIR)/menu.o: $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h $(SRC_DIR)/menu/menu.c $(SRC_DIR)/menu/menu.h
+	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/menu.o -c $(SRC_DIR)/menu/menu.c
+
+$(OBJ_DIR)/pre_process.o: $(PRE_PROCESS_DEPENDENCIES) $(SRC_DIR)/pre_process/pre_process.c $(SRC_DIR)/pre_process/pre_process.h
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/pre_process.o -c $(SRC_DIR)/pre_process/pre_process.c
 
-$(OBJ_DIR)/file.o: $(SRC_DIR)/file/file.c $(SRC_DIR)/file/file.h $(SRC_DIR)/structures/structures.h
+$(OBJ_DIR)/file.o: $(SRC_DIR)/file/file.c $(SRC_DIR)/file/file.h $(SRC_DIR)/structures/structures.h $(SRC_DIR)/pre_process/pre_process.h
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/file.o -c $(SRC_DIR)/file/file.c
 
 $(OBJ_DIR)/structures.o: $(SRC_DIR)/structures/structures.c $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h

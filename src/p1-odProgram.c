@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include "./file/file.h"
 #include "./menu/menu.h"
+#include "./search/search.h"
 #include "./pre_process/pre_process.h"
 
 int main()
@@ -60,7 +61,10 @@ int main()
 		cache->dstid = 0;
 		cache->hod = -1;
 
-		search_menu(pd_search, cache);
+		int flag = EXIT_SUCCESS;
+		while (flag != EXIT_FAILURE) {
+			flag = search_actions(pd_search, cache);
+		}
 
 		free(cache);
 		free(pd_search);
@@ -73,7 +77,7 @@ int main()
 
 		piped_t *pd_main = (piped_t *)malloc(sizeof(piped_t));
 		pd_main->write = main_pipe_fd[1];
-		pd_main->read = main_pipe_fd[0];
+		pd_main->read = search_pipe_fd[0];
 		main_menu(pd_main);
 
 		free(pd_main);

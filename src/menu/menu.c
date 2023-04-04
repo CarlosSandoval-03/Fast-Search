@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "./menu.h"
+#include "../file/file.h"
 #include "../structures/structures.h"
 
 long get_num_from_input(long min, long max)
@@ -13,46 +14,11 @@ long get_num_from_input(long min, long max)
 		while (getc(stdin) != '\n') {
 		} // Clear buffer if user registers a string
 
-		if (num >= min && num <= max)
+		if (min <= num && num <= max)
 			return num;
+
+		printf("ERROR: Ingrese un numero entre %ld y %ld: ", min, max);
 	} while (1);
-}
-
-int search_actions(piped_t *pipe_descriptors, cache_t *cache)
-{
-	int selected_option = 0;
-	read(pipe_descriptors->read, &selected_option, sizeof(int));
-
-	if (selected_option == EXIT_OPTION)
-		return -1;
-
-	if (selected_option == SEARCH_OPTION) {
-		float mean_time = -1;
-
-		// If user not selected any option, return -1
-		if (cache->srcid == 0 || cache->dstid == 0 || cache->hod == -1) {
-			write(pipe_descriptors->write, &mean_time, sizeof(float));
-		}
-
-		// TODO: Proceso de búsqueda
-		write(pipe_descriptors->write, &mean_time, sizeof(float));
-		return EXIT_SUCCESS;
-	}
-
-	// If user not search or exit, then get number from input
-	switch (selected_option) {
-	case SRCID_OPTION:
-		// Ingresar origen
-		break;
-	case DSTID_OPTION:
-		// Ingresar destino
-		break;
-	case HOD_OPTION:
-		// Ingresar hora
-		break;
-	}
-
-	return EXIT_SUCCESS;
 }
 
 void menu_actions(int option, piped_t *pipe_descriptors)
@@ -65,12 +31,12 @@ void menu_actions(int option, piped_t *pipe_descriptors)
 	switch (option) {
 	case SRCID_OPTION:
 		message = "Ingrese ID del origen: ";
-		min = 0;
+		min = 1;
 		max = 1160;
 		break;
 	case DSTID_OPTION:
 		message = "Ingrese ID del destino: ";
-		min = 0;
+		min = 1;
 		max = 1160;
 		break;
 	case HOD_OPTION:
@@ -79,14 +45,13 @@ void menu_actions(int option, piped_t *pipe_descriptors)
 		max = 23;
 		break;
 	case SEARCH_OPTION:
-		message = "Tiempo de viaje medio: ";
+		message = "\nTiempo de viaje medio: ";
 		break;
 	case EXIT_OPTION:
 	default:
 		return;
 	}
 
-	// Send number to search process
 	printf("%s", message);
 	if (option != SEARCH_OPTION) {
 		long num = get_num_from_input(min, max);
@@ -100,20 +65,12 @@ void menu_actions(int option, piped_t *pipe_descriptors)
 	if (mean_time == -1)
 		printf("NA\n");
 	else
-		printf("%f\n", mean_time);
-}
-
-void search_menu(piped_t *pipe_descriptors, cache_t *cache)
-{
-	int flag = 0;
-	while (flag != -1) {
-		flag = search_actions(pipe_descriptors, cache);
-	}
+		printf("%.2f\n", mean_time);
 }
 
 void main_menu(piped_t *pipe_descriptors)
 {
-	printf("Bienvenido\n");
+	printf("\nBienvenido\n");
 
 	int option = 0;
 	do {
