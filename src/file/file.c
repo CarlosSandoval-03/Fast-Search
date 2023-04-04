@@ -92,11 +92,22 @@ long get_pos_by_srcid(unsigned short srcid)
 float get_mean_time(cache_t *cache)
 {
 	unsigned short srcid = cache->srcid;
+	unsigned short next_srcid = srcid + 1;
 	long start_pos = get_pos_by_srcid(srcid);
-	long end_pos = get_pos_by_srcid(srcid + 1) - 1;
+	long end_pos = get_pos_by_srcid(next_srcid) - 1;
 
-	if (start_pos == -1 || end_pos == -1) {
+	if (start_pos == -1) {
 		return -1.0;
+	}
+
+	if (end_pos < 0) {
+		while (end_pos < 0) {
+			next_srcid++;
+			end_pos = get_pos_by_srcid(next_srcid) - 1;
+
+			if (next_srcid == HASH_SIZE)
+				return -1.0;
+		}
 	}
 
 	// Set cursor on first element of the list
