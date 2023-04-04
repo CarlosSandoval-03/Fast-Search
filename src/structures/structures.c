@@ -35,19 +35,6 @@ node_t *push(node_t **head, unsigned short dstid, unsigned char hod, float mean_
 	return n_node;
 }
 
-long write_list(node_t *head, FILE *fp)
-{
-	long start_pos = ftell(fp);
-	node_t *curr_node = head;
-
-	while (curr_node != NULL) {
-		fwrite(curr_node, sizeof(node_t), 1, fp);
-		curr_node = curr_node->next;
-	}
-
-	return start_pos;
-}
-
 hash_t *new_hash()
 {
 	hash_t *ptr_hash = (hash_t *)malloc(sizeof(hash_t));
@@ -85,7 +72,7 @@ int insert(hash_t *ptr_hash, int srcid, unsigned short dstid, unsigned char hod,
 	return index;
 }
 
-index_t *new_index(unsigned short srcid, unsigned long start_pos)
+index_t *new_index(unsigned short srcid, long start_pos)
 {
 	index_t *ptr_index = (index_t *)malloc(sizeof(index_t));
 	if (ptr_index == NULL) {
@@ -96,50 +83,6 @@ index_t *new_index(unsigned short srcid, unsigned long start_pos)
 	ptr_index->srcid = srcid;
 	ptr_index->start_pos = start_pos;
 	return ptr_index;
-}
-
-void write_hash(hash_t *ptr_hash, FILE *hash_fp, FILE *list_fp)
-{
-	for (int i = 0; i < HASH_SIZE; i++) {
-		// Write list in file
-		long start_pos = ftell(list_fp);
-		node_t *head = ptr_hash->headers_list[i];
-		if (head != NULL) {
-			write_list(head, list_fp);
-		}
-
-		// Save srcid and start_pos in file
-		const unsigned short srcid = i + 1;
-		index_t *index = new_index(srcid, start_pos);
-		fwrite(index, sizeof(index_t), 1, hash_fp);
-		free(index);
-	}
-}
-
-long get_pos_by_srcid(FILE *hash_fp, unsigned short srcid)
-{
-	if (hash_fp == NULL) {
-		perror("READ_HASH: NULL POINTER FILE HASH");
-		exit(EXIT_FAILURE);
-	}
-
-	while (!feof(hash_fp)) {
-		index_t *index = (index_t *)malloc(sizeof(index_t));
-		if (index == NULL) {
-			perror("READ_HASH: NULL POINTER INDEX");
-			exit(EXIT_FAILURE);
-		}
-
-		fread(index, sizeof(index_t), 1, hash_fp);
-		if (index->srcid == srcid) {
-			unsigned short start_pos = index->start_pos;
-			return start_pos;
-		}
-
-		free(index);
-	}
-
-	return -1;
 }
 
 void free_hash(hash_t *ptr_hash)
