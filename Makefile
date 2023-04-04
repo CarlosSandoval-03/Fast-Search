@@ -15,7 +15,7 @@ $(BUILD_DIR)/main: $(MAIN_DEPENDENCIES)
 	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/main $(MAIN_DEPENDENCIES)
 
 # Build pre_process
-pre_process: create_build_dir create_obj_dir create_data_dir pre_process
+pre_process: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/run_pre_process
 	@echo "Build pre_process..."
 
 $(BUILD_DIR)/run_pre_process: $(PRE_PROCESS_DEPENDENCIES) $(OBJ_DIR)/pre_process.o $(SRC_DIR)/run_pre_process.c
