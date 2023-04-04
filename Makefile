@@ -8,14 +8,14 @@ MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(OBJ_DIR)/pre_proce
 PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o 
 
 # Build main
-build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main
+build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main $(BUILD_DIR)/run_pre_process
 	@echo "Building..."
 
 $(BUILD_DIR)/main: $(MAIN_DEPENDENCIES)
 	@$(CC) $(CFLAGS) -o $(BUILD_DIR)/main $(MAIN_DEPENDENCIES)
 
 # Build pre_process
-pre_process: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/run_pre_process
+pre_process: create_build_dir create_obj_dir create_data_dir pre_process
 	@echo "Build pre_process..."
 
 $(BUILD_DIR)/run_pre_process: $(PRE_PROCESS_DEPENDENCIES) $(OBJ_DIR)/pre_process.o $(SRC_DIR)/run_pre_process.c
