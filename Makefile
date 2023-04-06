@@ -5,7 +5,7 @@ BUILD_DIR=./build
 OBJ_DIR=./build/objs
 DATA_DIR=./data
 MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(OBJ_DIR)/pre_process.o $(OBJ_DIR)/menu.o $(OBJ_DIR)/search.o $(SRC_DIR)/p1-odProgram.c
-PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o 
+PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o
 
 # Build main
 build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/main $(BUILD_DIR)/run_pre_process
