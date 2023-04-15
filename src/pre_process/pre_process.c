@@ -24,8 +24,8 @@ typedef struct {
  * @brief Creates a new instance of raw_t struct.
  * @return raw_t* A pointer to the newly allocated memory for raw_t struct.
  * @note This function allocates memory for a new instance of the raw_t struct using the malloc function.
- * If the allocation fails, the function exits the program with an error message.
  * The function then returns a pointer to the newly allocated memory for raw_t struct.
+ * @warning If the allocation fails, the function exits the program with an error message.
  */
 raw_t *new_raw()
 {

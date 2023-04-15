@@ -17,7 +17,7 @@
  * @param path_file The path of the file to open
  * @param mode The mode in which to open the file (e.g. "r", "w", "a", etc.)
  * @return Returns a pointer to the opened file
- * @note If the file cannot be opened, the function will print an error message
+ * @warning If the file cannot be opened, the function will print an error message
  * using perror() and exit the program with failure status
  */
 FILE *open_file(char const *path_file, char const *mode)
