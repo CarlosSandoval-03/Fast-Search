@@ -36,4 +36,4 @@ Once you have the preprocessed files, you can start the execution of the main pr
 make build && ./build/main
 ```
 
-2. Follow the instructions
+2. Follow the program instructions
