@@ -1,3 +1,10 @@
+/******************************************************************************************
+ * Copyright (C) 2023 by Carlos Sandoval                                                  *
+ *                                                                                        *
+ * This file is part of Fast-Search.                                                      *
+ * @author Carlos Santiago Sandoval Casallas, https://github.com/CarlosSandoval-03        *
+ * Released under the terms of the MIT license, see: https://opensource.org/license/mit/  *
+ ******************************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -5,6 +12,12 @@
 #include "../file/file.h"
 #include "../structures/structures.h"
 
+/**
+ * @brief Prompts the user to input a number within a specified range.
+ * @param min The minimum allowed value.
+ * @param max The maximum allowed value.
+ * @return long The number input by the user that falls within the specified range.
+ */
 long get_num_from_input(long min, long max)
 {
 	long num = 0;
@@ -21,6 +34,14 @@ long get_num_from_input(long min, long max)
 	} while (1);
 }
 
+/**
+ * @brief Manage options.
+ * @param option An integer representing the option chosen by the user in the menu.
+ * @param pipe_descriptors A pointer to a piped_t struct containing file descriptors for inter-process communication.
+ * @return void
+ * @note Sends an option to the search process through a pipe, and based on the option, prompts the user to input a number
+ * or retrieves the mean travel time from the search process and prints it to the console.
+ */
 void menu_actions(int option, piped_t *pipe_descriptors)
 {
 	write(pipe_descriptors->write, &option, sizeof(int)); // Send option to search process
@@ -68,6 +89,15 @@ void menu_actions(int option, piped_t *pipe_descriptors)
 		printf("%.2f\n", mean_time);
 }
 
+/**
+ * @brief Displays the main menu and executes the selected option.
+ * @param pipe_descriptors A pointer to a piped_t struct containing file descriptors for a pipe.
+ * @return void
+ * @note This function displays a menu with several options related to the transportation system.
+ * It then prompts the user to choose an option by entering a number from 1 to 5.
+ * Depending on the option selected, it may call the menu_actions() function to perform specific actions.
+ * This function will continue to display the menu until the user selects option 5 to exit the program.
+ */
 void main_menu(piped_t *pipe_descriptors)
 {
 	printf("\nBienvenido\n");

@@ -1,3 +1,10 @@
+/******************************************************************************************
+ * Copyright (C) 2023 by Carlos Sandoval                                                  *
+ *                                                                                        *
+ * This file is part of Fast-Search.                                                      *
+ * @author Carlos Santiago Sandoval Casallas, https://github.com/CarlosSandoval-03        *
+ * Released under the terms of the MIT license, see: https://opensource.org/license/mit/  *
+ ******************************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,6 +12,14 @@
 #include "../structures/structures.h"
 #include "../pre_process/pre_process.h"
 
+/**
+ * @brief This function opens a file in a specified mode
+ * @param path_file The path of the file to open
+ * @param mode The mode in which to open the file (e.g. "r", "w", "a", etc.)
+ * @return Returns a pointer to the opened file
+ * @warning If the file cannot be opened, the function will print an error message
+ * using perror() and exit the program with failure status
+ */
 FILE *open_file(char const *path_file, char const *mode)
 {
 	FILE *file = fopen(path_file, mode);
@@ -16,6 +31,12 @@ FILE *open_file(char const *path_file, char const *mode)
 	return file;
 }
 
+/**
+ * @brief This function removes a line from a file
+ * @param fp A pointer to the file to remove a line from
+ * @note This function reads the file character by character until it reaches
+ * the end of the current line (indicated by a newline character)
+ */
 void remove_line(FILE *fp)
 {
 	char curr_char = '\0';
@@ -24,6 +45,14 @@ void remove_line(FILE *fp)
 	}
 }
 
+/**
+ * @brief This function writes a linked list to a file
+ * @param head A pointer to the head node of the linked list to write
+ * @param fp A pointer to the file to write the linked list to
+ * @return Returns the starting position in the file where the linked list was written
+ * @note This function writes each node of the linked list to the file using fwrite().
+ * The size of each node is determined by sizeof(node_t).
+ */
 long write_list(node_t *head, FILE *fp)
 {
 	long start_pos = ftell(fp);
@@ -37,6 +66,16 @@ long write_list(node_t *head, FILE *fp)
 	return start_pos;
 }
 
+/**
+ * @brief This function writes the hash table to file
+ * @param ptr_hash A pointer to the hash table to write to file
+ * @param hash_fp A pointer to the file to write the hash table index
+ * @param list_fp A pointer to the file to write the linked lists
+ * @note This function iterates over each header in the hash table and writes the
+ * corresponding linked list to the list file. It then creates a new index with the
+ * source ID and starting position of the linked list in the list file, and writes
+ * this index to the hash file using fwrite().
+ */
 void write_hash(hash_t *ptr_hash, FILE *hash_fp, FILE *list_fp)
 {
 	for (int i = 0; i < HASH_SIZE; i++) {
@@ -55,6 +94,15 @@ void write_hash(hash_t *ptr_hash, FILE *hash_fp, FILE *list_fp)
 	}
 }
 
+/**
+ * @brief This function retrieves the starting position of a linked list in the list file
+ * given a source ID from the hash file
+ * @param srcid The source ID to search for in the hash file
+ * @return Returns the starting position of the linked list in the list file if found, or -1 if not found
+ * @note This function opens the hash file for reading and searches for an index with the
+ * provided source ID. If found, it returns the starting position of the corresponding
+ * linked list in the list file. If not found, it returns -1.
+ */
 long get_pos_by_srcid(unsigned short srcid)
 {
 	FILE *hash_fp = open_file(DEFAULT_PATH_HASH, "rb");
@@ -89,6 +137,15 @@ long get_pos_by_srcid(unsigned short srcid)
 	return -1;
 }
 
+/**
+ * @brief This function calculates the mean travel time for a specific cache
+ * @param cache A pointer to the cache to calculate the mean travel time for
+ * @return Returns the mean travel time for the specified cache, or -1.0 if the cache cannot be found
+ * @note This function retrieves the starting and ending positions of the linked list for the
+ * specified cache using the get_pos_by_srcid() function. It then searches the linked list
+ * in the list file for the cache, and if found, returns the mean travel time for the cache.
+ * If the cache cannot be found, the function returns -1.0.
+ */
 float get_mean_time(cache_t *cache)
 {
 	unsigned short srcid = cache->srcid;

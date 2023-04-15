@@ -1,3 +1,10 @@
+/******************************************************************************************
+ * Copyright (C) 2023 by Carlos Sandoval                                                  *
+ *                                                                                        *
+ * This file is part of Fast-Search.                                                      *
+ * @author Carlos Santiago Sandoval Casallas, https://github.com/CarlosSandoval-03        *
+ * Released under the terms of the MIT license, see: https://opensource.org/license/mit/  *
+ ******************************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,6 +13,11 @@
 #include "../file/file.h"
 #include "../structures/structures.h"
 
+/**
+ * @brief Check if all the necessary data is in the cache.
+ * @param cache The cache to check.
+ * @return int Returns 1 if all the necessary data is in the cache, -1 otherwise.
+ */
 int have_all_data(cache_t *cache)
 {
 	if (cache->srcid == 0 || cache->dstid == 0 || cache->hod == -1)
@@ -13,6 +25,12 @@ int have_all_data(cache_t *cache)
 	return 1;
 }
 
+/**
+ * @brief Search actions based on selected option and cache data
+ * @param pipe_descriptors Struct containing the read and write file descriptors for the pipe
+ * @param cache Struct containing the cache data
+ * @return int Returns EXIT_SUCCESS or EXIT_FAILURE depending on the selected option
+ */
 int search_actions(piped_t *pipe_descriptors, cache_t *cache)
 {
 	int selected_option = 0;
