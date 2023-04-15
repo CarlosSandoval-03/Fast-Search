@@ -19,7 +19,7 @@ The purpose of this project is to deepen knowledge about the operating system an
 If you do not have the processed file:
 
 1. Download the data at the following link: [data in zip format](https://drive.google.com/file/d/1YtSBskKg5gR7Uylk8TZU_c2MkEJKwwbg/view?usp=sharing).
-2. Unzip the file "uber_data.zip".
+2. Unzip the file "uber_data.zip" and move the csv to "data/raw/".
 3. Execute on terminal:
 
 ```shell
