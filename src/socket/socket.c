@@ -21,6 +21,10 @@ int create_socket()
 
 int socket_bind_server(int server_fd, unsigned int port)
 {
+	// Enable option SO_REUSEADDR
+	int optval = 1;
+	setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
 	struct sockaddr_in server_conf;
 	server_conf.sin_family = AF_INET;
 	server_conf.sin_port = htons(port);
