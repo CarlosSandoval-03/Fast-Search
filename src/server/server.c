@@ -9,6 +9,7 @@
 
 #include "./server.h"
 #include "../socket/socket.h"
+#include "../logger/logger.h"
 
 int server_start_listen(int server_fd, int max_conns)
 {
@@ -29,6 +30,10 @@ int server_accept_client(int server_fd)
 	if (client_fd < 0) {
 		perror("ACCEPT_CLIENT: THE CLIENT DESCRIPTOR WAS NOT OBTAINED\n");
 	}
+
+	char client_ip[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(client_conf.sin_addr), client_ip, INET_ADDRSTRLEN);
+	log_client_connect(client_ip);
 
 	return client_fd;
 }

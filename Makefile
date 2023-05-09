@@ -1,13 +1,13 @@
 CC=gcc
-CFLAGS=-Wall -g -pedantic
+CFLAGS=-Wall -Wextra -Werror -g -pedantic
 SRC_DIR=./src
 BUILD_DIR=./build
 OBJ_DIR=./build/objs
 DATA_DIR=./data
-MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(OBJ_DIR)/pre_process.o $(OBJ_DIR)/menu.o $(OBJ_DIR)/search.o $(OBJ_DIR)/socket.o $(OBJ_DIR)/client.o $(OBJ_DIR)/server.o
+MAIN_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o $(OBJ_DIR)/pre_process.o $(OBJ_DIR)/menu.o $(OBJ_DIR)/search.o $(OBJ_DIR)/logger.o $(OBJ_DIR)/socket.o $(OBJ_DIR)/client.o $(OBJ_DIR)/server.o
 PRE_PROCESS_DEPENDENCIES=$(OBJ_DIR)/file.o $(OBJ_DIR)/structures.o
-CLIENT_DEPENDENCIES=$(SRC_DIR)/socket/socket.h $(SRC_DIR)/server/server.h $(SRC_DIR)/client/client.h $(SRC_DIR)/client/client.c
-SERVER_DEPENDENCIES=$(SRC_DIR)/socket/socket.h $(SRC_DIR)/server/server.h $(SRC_DIR)/server/server.c
+CLIENT_DEPENDENCIES=$(SRC_DIR)/protocol/protocol.h $(SRC_DIR)/client/client.h $(SRC_DIR)/client/client.c
+SERVER_DEPENDENCIES=$(SRC_DIR)/protocol/protocol.h $(SRC_DIR)/logger/logger.h $(SRC_DIR)/socket/socket.h $(SRC_DIR)/server/server.h $(SRC_DIR)/server/server.c
 
 # Build main
 build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/server $(BUILD_DIR)/client $(BUILD_DIR)/run_pre_process
@@ -38,6 +38,9 @@ $(OBJ_DIR)/server.o: $(SERVER_DEPENDENCIES)
 $(OBJ_DIR)/socket.o: $(SRC_DIR)/socket/socket.h $(SRC_DIR)/server/server.h $(SRC_DIR)/socket/socket.c
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/socket.o -c $(SRC_DIR)/socket/socket.c -lm
 
+$(OBJ_DIR)/logger.o: $(SRC_DIR)/logger/logger.h $(SRC_DIR)/logger/logger.c $(SRC_DIR)/file/file.h
+	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/logger.o -c $(SRC_DIR)/logger/logger.c
+
 $(OBJ_DIR)/search.o: $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h $(SRC_DIR)/menu/menu.h $(SRC_DIR)/search/search.h $(SRC_DIR)/search/search.c
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/search.o -c $(SRC_DIR)/search/search.c
 
@@ -64,7 +67,7 @@ create_obj_dir:
 
 .PHONY: create_data_dir
 create_data_dir:
-	@$(shell mkdir -p $(DATA_DIR) $(DATA_DIR)/processed $(DATA_DIR)/raw)
+	@$(shell mkdir -p $(DATA_DIR) $(DATA_DIR)/processed $(DATA_DIR)/raw $(DATA_DIR)/logs)
 
 # Clean dirs content
 .PHONY: clean clean_obj clean_build
