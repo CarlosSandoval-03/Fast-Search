@@ -5,7 +5,7 @@
 #define HOST "127.0.0.1"
 #define PORT 8080
 
-#define THREAD_POOL_SIZE 8
+#define THREAD_POOL_SIZE MAX_CONNS
 
 #include <pthread.h>
 #include "../structures/structures.h"
