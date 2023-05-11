@@ -11,6 +11,8 @@
 #include "./search.h"
 #include "../menu/menu.h"
 #include "../file/file.h"
+#include "../logger/logger.h"
+#include "../protocol/protocol.h"
 #include "../structures/structures.h"
 
 /**
@@ -27,22 +29,25 @@ int have_all_data(cache_t *cache)
 
 /**
  * @brief Search actions based on selected option and cache data
- * @param pipe_descriptors Struct containing the read and write file descriptors for the pipe
+ * @param socket_fd The socket file descriptor
  * @param cache Struct containing the cache data
  * @return int Returns EXIT_SUCCESS or EXIT_FAILURE depending on the selected option
  */
-int search_actions(piped_t *pipe_descriptors, cache_t *cache)
+int search_actions(client_conn_t *client_conn, cache_t *cache)
 {
-	int selected_option = 0;
-	read(pipe_descriptors->read, &selected_option, sizeof(int));
+	int socket_fd = client_conn->client_fd;
 
-	if (selected_option == EXIT_OPTION)
+	int selected_option = 0;
+	secure_recv_int(socket_fd, &selected_option);
+
+	if (selected_option == EXIT_OPTION || selected_option == 0)
 		return EXIT_FAILURE;
 
 	// If user not provided all the data, return -1 (NA)
 	float mean_time = -1.0;
 	if (selected_option == SEARCH_OPTION && have_all_data(cache) < 0) {
-		write(pipe_descriptors->write, &mean_time, sizeof(float));
+		secure_send_float(socket_fd, mean_time);
+		log_client_request_data(client_conn->client_ip, mean_time);
 		return EXIT_SUCCESS;
 	}
 
@@ -50,24 +55,30 @@ int search_actions(piped_t *pipe_descriptors, cache_t *cache)
 	if (selected_option == SEARCH_OPTION) {
 		mean_time = get_mean_time(cache);
 
-		write(pipe_descriptors->write, &mean_time, sizeof(float));
+		secure_send_float(socket_fd, mean_time);
+		log_client_request_data(client_conn->client_ip, mean_time);
 		return EXIT_SUCCESS;
 	}
 
+	const char *type_data = NULL;
 	long num = 0;
-	read(pipe_descriptors->read, &num, sizeof(long));
+	secure_recv_long(socket_fd, &num);
 
 	switch (selected_option) {
 	case SRCID_OPTION:
 		cache->srcid = (unsigned short)num;
+		type_data = "srcid";
 		break;
 	case DSTID_OPTION:
 		cache->dstid = (unsigned short)num;
+		type_data = "dstid";
 		break;
 	case HOD_OPTION:
 		cache->hod = (char)num;
+		type_data = "hod";
 		break;
 	}
 
+	log_client_send_data(client_conn->client_ip, type_data, num);
 	return EXIT_SUCCESS;
 }

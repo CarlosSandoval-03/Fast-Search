@@ -44,10 +44,10 @@ $(OBJ_DIR)/protocol.o: $(SRC_DIR)/protocol/protocol.h $(SRC_DIR)/protocol/protoc
 $(OBJ_DIR)/logger.o: $(SRC_DIR)/logger/logger.h $(SRC_DIR)/logger/logger.c $(SRC_DIR)/file/file.h
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/logger.o -c $(SRC_DIR)/logger/logger.c
 
-$(OBJ_DIR)/search.o: $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h $(SRC_DIR)/menu/menu.h $(SRC_DIR)/search/search.h $(SRC_DIR)/search/search.c
+$(OBJ_DIR)/search.o: $(SRC_DIR)/protocol/protocol.h $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h $(SRC_DIR)/menu/menu.h $(SRC_DIR)/search/search.h $(SRC_DIR)/search/search.c
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/search.o -c $(SRC_DIR)/search/search.c
 
-$(OBJ_DIR)/menu.o: $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h $(SRC_DIR)/menu/menu.c $(SRC_DIR)/menu/menu.h
+$(OBJ_DIR)/menu.o: $(SRC_DIR)/structures/structures.h $(SRC_DIR)/file/file.h $(SRC_DIR)/protocol/protocol.h $(SRC_DIR)/menu/menu.c $(SRC_DIR)/menu/menu.h
 	@$(CC) $(CFLAGS) -o $(OBJ_DIR)/menu.o -c $(SRC_DIR)/menu/menu.c
 
 $(OBJ_DIR)/pre_process.o: $(PRE_PROCESS_DEPENDENCIES) $(SRC_DIR)/pre_process/pre_process.c $(SRC_DIR)/pre_process/pre_process.h

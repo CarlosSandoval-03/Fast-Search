@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include "./menu/menu.h"
 #include "./client/client.h"
 #include "./socket/socket.h"
 #include "./protocol/protocol.h"
@@ -30,22 +31,21 @@ int main(int argc, char *argv[])
 	socket_connect_client(client_fd, host, port);
 
 	// Wait server conn confirmation
-	int *server_msg = (int *)malloc(sizeof(int));
-	secure_recv_int(client_fd, server_msg);
-	if (*server_msg != SERVER_CONN_CONFIRMATION) {
+	int server_msg;
+	secure_recv_int(client_fd, &server_msg);
+	if (server_msg != SERVER_CONN_CONFIRMATION) {
 		perror("CLIENT: ERROR WHEN CONNECTING TO THE SERVER\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// Send client conn confirmation
-	*server_msg = CLIENT_CONN_CONFIRMATION;
-	secure_send_int(client_fd, *server_msg);
+	server_msg = CLIENT_CONN_CONFIRMATION;
+	secure_send_int(client_fd, server_msg);
 
-	while (1) {
-	}
+	// Show main menu
+	main_menu(client_fd);
 
 	close(client_fd);
-	free(server_msg);
 	free(host);
 	return EXIT_SUCCESS;
 }

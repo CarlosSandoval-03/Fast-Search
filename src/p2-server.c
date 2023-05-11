@@ -33,9 +33,7 @@ int main(int argc, char *argv[])
 	pthread_t *thread_pool = create_thread_pool(queue_conns);
 
 	while (1) {
-		printf("WAITING FOR CLIENT\n"); // TODO: Remove
 		server_accept_client(server_fd, queue_conns);
-		printf("ACCEPTED CLIENT\n"); // TODO: Remove
 	}
 
 	// Join thread pool
@@ -43,6 +41,5 @@ int main(int argc, char *argv[])
 
 	close(server_fd);
 	free(queue_conns);
-	printf("END SERVER\n"); // TODO: Remove
 	return EXIT_SUCCESS;
 }

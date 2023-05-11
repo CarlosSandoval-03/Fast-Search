@@ -15,10 +15,7 @@
 #define SEARCH_OPTION 4
 #define EXIT_OPTION 5
 
-#include "../structures/structures.h"
-
-void menu_actions(int option, piped_t *pipe_descriptors);
-
-void main_menu(piped_t *pipe_descriptors);
+void menu_actions(int option, int socked_fd);
+void main_menu(int socket_fd);
 
 #endif // !_MENU_H_

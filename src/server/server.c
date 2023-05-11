@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "./server.h"
+#include "../search/search.h"
 #include "../socket/socket.h"
 #include "../logger/logger.h"
 #include "../protocol/protocol.h"
@@ -36,26 +37,23 @@ void create_queue_conn(int queue_fd[2], queue_conn_t *queue_conn_struct)
 	queue_conn_struct->enqueue = queue_fd[1];
 }
 
-int dequeue_conn(queue_conn_t *queue_conns)
+void enqueue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn)
 {
-	int client_fd;
-	int queue_status = read(queue_conns->dequeue, &client_fd, sizeof(int));
-	if (queue_status < 0) {
-		perror("QUEUE: ERROR WHEN READING FROM THE QUEUE\n");
-	}
-
-	return client_fd;
-}
-
-void enqueue_conn(queue_conn_t *queue_conns, int client_fd)
-{
-	int queue_status = write(queue_conns->enqueue, &client_fd, sizeof(int));
+	int queue_status = write(queue_conns->enqueue, client_conn, sizeof(*client_conn));
 	if (queue_status < 0) {
 		perror("QUEUE: ERROR WHEN WRITING TO THE QUEUE\n");
 	}
 }
 
-int server_accept_client(int server_fd, queue_conn_t *queue_conns)
+void dequeue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn)
+{
+	int queue_status = read(queue_conns->dequeue, client_conn, sizeof(*client_conn));
+	if (queue_status < 0) {
+		perror("QUEUE: ERROR WHEN READING FROM THE QUEUE\n");
+	}
+}
+
+void server_accept_client(int server_fd, queue_conn_t *queue_conns)
 {
 	struct sockaddr_in client_conf;
 	socklen_t socklen = sizeof(client_conf);
@@ -65,50 +63,70 @@ int server_accept_client(int server_fd, queue_conn_t *queue_conns)
 		perror("ACCEPT_CLIENT: THE CLIENT DESCRIPTOR WAS NOT OBTAINED\n");
 	}
 
-	// Send the client descriptor to the queue
-	enqueue_conn(queue_conns, client_fd);
+	// Send the client cache conn to the queue
+	client_conn_t *client_conn = (client_conn_t *)malloc(sizeof(client_conn_t));
+	client_conn->client_fd = client_fd;
+
+	memset(client_conn->client_ip, 0, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &(client_conf.sin_addr), (client_conn->client_ip), INET_ADDRSTRLEN);
+	enqueue_conn(queue_conns, client_conn);
 
 	// Log the client connection
-	char client_ip[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(client_conf.sin_addr), client_ip, INET_ADDRSTRLEN);
-	log_client_connect(client_ip);
+	log_client_connect(client_conn->client_ip);
+}
 
-	return client_fd;
+void secure_disconnect_client(client_conn_t *client_conn)
+{
+	log_client_disconnect(client_conn->client_ip);
+
+	int client_fd = client_conn->client_fd;
+	close(client_fd);
+	free(client_conn);
 }
 
 void *thread_pool_worker(void *args)
 {
 	queue_conn_t *queue_conns = (queue_conn_t *)args;
 	while (1) {
+		client_conn_t *client_conn = (client_conn_t *)malloc(sizeof(client_conn_t));
+		client_conn->client_fd = 0;
+		memset(client_conn->client_ip, 0, INET_ADDRSTRLEN);
+
 		// Get client from queue
-		int client_fd = dequeue_conn(queue_conns);
-		printf("DEQUEUED CLIENT\n"); // TODO: Remove
+		dequeue_conn(queue_conns, client_conn);
 
 		// Send server_conn_confirmation
-		secure_send_int(client_fd, SERVER_CONN_CONFIRMATION);
+		secure_send_int(client_conn->client_fd, SERVER_CONN_CONFIRMATION);
 
 		// Receive client_conn_confirmation
-		int *client_msg = (int *)malloc(sizeof(int));
-		secure_recv_int(client_fd, client_msg);
-		if (*client_msg != CLIENT_CONN_CONFIRMATION) {
+		int client_msg;
+		secure_recv_int(client_conn->client_fd, &client_msg);
+		if (client_msg != CLIENT_CONN_CONFIRMATION) {
 			perror("CLIENT_CONN_CONFIRMATION: THE CLIENT DID NOT SEND THE CORRECT MESSAGE\n");
 
-			// Safe disconnection
-			secure_send_int(client_fd, SERVER_CONN_REJECTION);
-			close(client_fd);
-			free(client_msg);
-
 			// Attend the next client
+			secure_disconnect_client(client_conn);
 			continue;
 		}
 
-		free(client_msg);
+		// Start search process
+		cache_t *cache = (cache_t *)malloc(sizeof(cache_t));
+		cache->srcid = 0;
+		cache->dstid = 0;
+		cache->hod = -1;
+
+		int flag = EXIT_SUCCESS;
+		while (flag != EXIT_FAILURE) {
+			flag = search_actions(client_conn, cache);
+		}
+
+		free(cache);
+		secure_disconnect_client(client_conn);
 	}
 }
 
 pthread_t *create_thread_pool(queue_conn_t *queue_conns)
 {
-	printf("CREATING THREAD POOL\n"); // TODO: Remove
 	pthread_t *thread_pool = (pthread_t *)malloc(sizeof(pthread_t) * THREAD_POOL_SIZE);
 	for (int i = 0; i < THREAD_POOL_SIZE; i++) {
 		int thread_status = pthread_create(&thread_pool[i], NULL, thread_pool_worker, (void *)queue_conns);
@@ -123,7 +141,6 @@ pthread_t *create_thread_pool(queue_conn_t *queue_conns)
 
 void join_thread_pool(pthread_t *thread_pool)
 {
-	printf("JOINING THREAD POOL\n"); // TODO: Remove
 	for (int i = 0; i < THREAD_POOL_SIZE; i++) {
 		int thread_status = pthread_join(thread_pool[i], NULL);
 		if (thread_status < 0) {

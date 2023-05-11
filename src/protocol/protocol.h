@@ -16,7 +16,16 @@
 #define CLIENT_SEND_MESSAGE 0x13
 #define CLIENT_RECV_MESSAGE 0x14
 
+#define BUFFER_SIZE 1024
+
+#include <stdlib.h>
+
+void secure_send(int socket_fd, const char *string);
 void secure_send_int(int socket_fd, int value);
+void secure_send_long(int socket_fd, long value);
+void secure_send_float(int socket_fd, float value);
 void secure_recv_int(int socket_fd, int *value);
+void secure_recv_long(int socket_fd, long *value);
+void secure_recv_float(int socket_fd, float *value);
 
 #endif // !_PROTOCOL_H_

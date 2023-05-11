@@ -12,7 +12,7 @@
 
 int server_start_listen(int server_fd, int max_conns);
 void create_queue_conn(int queue_fd[2], queue_conn_t *queue_conn_struct);
-int server_accept_client(int server_fd, queue_conn_t *queue_conns);
+void server_accept_client(int server_fd, queue_conn_t *queue_conns);
 pthread_t *create_thread_pool(queue_conn_t *queue_conns);
 void join_thread_pool(pthread_t *thread_pool);
 
