@@ -39,6 +39,11 @@ typedef struct {
 	int read;
 } piped_t;
 
+typedef struct {
+	int enqueue;
+	int dequeue;
+} queue_conn_t;
+
 node_t *new_node();
 node_t *push(node_t **head, unsigned short dstid, unsigned char hod, float mean_travel_time);
 

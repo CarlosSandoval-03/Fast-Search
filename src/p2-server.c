@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 #include <sys/socket.h>
 #include "./server/server.h"
 #include "./socket/socket.h"
@@ -19,27 +20,29 @@ int main(int argc, char *argv[])
 	int server_fd = create_socket();
 	socket_bind_server(server_fd, port);
 
+	// Start queue for connections
+	int queue_fd[2];
+	queue_conn_t *queue_conns = (queue_conn_t *)malloc(sizeof(queue_conn_t));
+	create_queue_conn(queue_fd, queue_conns);
+
 	// Start listening for connections
 	printf("START TO LISTEN IN PORT: %u\n", port); // TODO: Remove
 	server_start_listen(server_fd, MAX_CONNS);
 
+	// Create thread pool
+	pthread_t *thread_pool = create_thread_pool(queue_conns);
+
 	while (1) {
-		int client_fd = server_accept_client(server_fd);
+		printf("WAITING FOR CLIENT\n"); // TODO: Remove
+		server_accept_client(server_fd, queue_conns);
 		printf("ACCEPTED CLIENT\n"); // TODO: Remove
-
-		send(client_fd, "Hello world\n", 12, 0);
-		printf("SENT MESSAGE\n"); // TODO: Remove
-
-		char buffer[12];
-		recv(client_fd, buffer, 12, 0);
-		buffer[11] = '\0';
-
-		printf("RECEIVED MESSAGE: %s\n", buffer); // TODO: Remove
-
-		close(client_fd);
 	}
 
+	// Join thread pool
+	join_thread_pool(thread_pool);
+
 	close(server_fd);
+	free(queue_conns);
 	printf("END SERVER\n"); // TODO: Remove
 	return EXIT_SUCCESS;
 }

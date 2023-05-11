@@ -14,7 +14,7 @@ void forced_disconnection_handler(const int signal, void *sock_conn)
 	if (signal == FAKE_SIGNAL)
 		return;
 
-	int disconnection_signal = CLIENT_CONN;
+	int disconnection_signal = CLIENT_DISCONNECTION;
 	send(*client_fd, &disconnection_signal, sizeof(disconnection_signal), 0);
 	printf("DISCONNECTING...\n");
 
