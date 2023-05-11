@@ -10,6 +10,6 @@
 
 #include "../structures/structures.h"
 
-int search_actions(piped_t *pipe_descriptors, cache_t *cache);
+int search_actions(client_conn_t *client_conn, cache_t *cache);
 
 #endif // _SEARCH_H_

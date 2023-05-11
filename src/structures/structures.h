@@ -9,6 +9,7 @@
 #define _STRUCTURES_H_
 
 #include <stdio.h>
+#include <arpa/inet.h>
 
 #define HASH_SIZE 1160
 
@@ -35,9 +36,14 @@ typedef struct {
 } cache_t;
 
 typedef struct {
-	int write;
-	int read;
-} piped_t;
+	int client_fd;
+	char client_ip[INET_ADDRSTRLEN];
+} client_conn_t;
+
+typedef struct {
+	int enqueue;
+	int dequeue;
+} queue_conn_t;
 
 node_t *new_node();
 node_t *push(node_t **head, unsigned short dstid, unsigned char hod, float mean_travel_time);
