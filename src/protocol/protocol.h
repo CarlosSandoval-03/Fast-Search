@@ -16,6 +16,8 @@
 #define CLIENT_SEND_MESSAGE 0x13
 #define CLIENT_RECV_MESSAGE 0x14
 
+#define FAKE_SIGNAL 0
+
 #define BUFFER_SIZE 1024
 
 #include <stdlib.h>

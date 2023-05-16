@@ -16,30 +16,24 @@ int main(int argc, char *argv[])
 		port = (unsigned int)strtol(argv[1], &end_ptr, 10);
 	}
 
+	// Create queue of connections
+	int queue_fd[2];
+	queue_conn_t *queue_conn = (queue_conn_t *)malloc(sizeof(queue_conn_t));
+	create_queue_conns(queue_fd, queue_conn);
+
 	// Create the server socket and bind it to the port
 	int server_fd = create_socket();
 	socket_bind_server(server_fd, port);
-
-	// Start queue for connections
-	int queue_fd[2];
-	queue_conn_t *queue_conns = (queue_conn_t *)malloc(sizeof(queue_conn_t));
-	create_queue_conn(queue_fd, queue_conns);
 
 	// Start listening for connections
 	printf("START TO LISTEN IN PORT: %u\n", port); // TODO: Remove
 	server_start_listen(server_fd, MAX_CONNS);
 
-	// Create thread pool
-	pthread_t *thread_pool = create_thread_pool(queue_conns);
-
+	// Create a scheduler thread to handle the queue of connections
+	pthread_t *scheduler_thread = (pthread_t *)malloc(sizeof(pthread_t));
+	create_scheduler_thread(queue_conn, scheduler_thread);
 	while (1) {
-		server_accept_client(server_fd, queue_conns);
+		client_conn_t *client_conn = (client_conn_t *)malloc(sizeof(client_conn_t));
+		server_accept_client(server_fd, client_conn, queue_conn);
 	}
-
-	// Join thread pool
-	join_thread_pool(thread_pool);
-
-	close(server_fd);
-	free(queue_conns);
-	return EXIT_SUCCESS;
 }

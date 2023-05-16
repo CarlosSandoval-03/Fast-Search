@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
 #include "./logger.h"
 #include "../file/file.h"
+
+pthread_mutex_t mutex;
 
 void write_date(FILE *file)
 {
@@ -18,6 +21,7 @@ void write_client(FILE *file, const char *client_ip)
 
 void log_client_connect(const char *client_ip)
 {
+	pthread_mutex_lock(&mutex);
 	FILE *file = open_file(LOG_FILE_PATH, "a");
 
 	write_date(file);
@@ -25,10 +29,12 @@ void log_client_connect(const char *client_ip)
 	fprintf(file, CLIENT_CONNECT_FORMAT);
 
 	fclose(file);
+	pthread_mutex_unlock(&mutex);
 }
 
 void log_client_disconnect(const char *client_ip)
 {
+	pthread_mutex_lock(&mutex);
 	FILE *file = open_file(LOG_FILE_PATH, "a");
 
 	write_date(file);
@@ -36,10 +42,12 @@ void log_client_disconnect(const char *client_ip)
 	fprintf(file, CLIENT_DISCONNECT_FORMAT);
 
 	fclose(file);
+	pthread_mutex_unlock(&mutex);
 }
 
 void log_client_send_data(const char *client_ip, const char *type_data, unsigned short data)
 {
+	pthread_mutex_lock(&mutex);
 	FILE *file = open_file(LOG_FILE_PATH, "a");
 
 	write_date(file);
@@ -47,10 +55,12 @@ void log_client_send_data(const char *client_ip, const char *type_data, unsigned
 	fprintf(file, CLIENT_SEND_ACTION_FORMAT, type_data, data);
 
 	fclose(file);
+	pthread_mutex_unlock(&mutex);
 }
 
 void log_client_request_data(const char *client_ip, float data)
 {
+	pthread_mutex_lock(&mutex);
 	FILE *file = open_file(LOG_FILE_PATH, "a");
 
 	write_date(file);
@@ -62,4 +72,5 @@ void log_client_request_data(const char *client_ip, float data)
 		fprintf(file, CLIENT_REQUEST_ACTION_FORMAT, data);
 
 	fclose(file);
+	pthread_mutex_unlock(&mutex);
 }

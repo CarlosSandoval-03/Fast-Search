@@ -3,8 +3,8 @@
 
 #define LOG_FILE_PATH "./data/logs/logs.txt"
 
-#define DATE_LOG_FORMAT "[Date %d-%02d-%02dT%02d:%02d:%02d] "
-#define CLIENT_LOG_FORMAT "Client [%s] "
+#define DATE_LOG_FORMAT "[%d-%02d-%02dT%02d:%02d:%02d] "
+#define CLIENT_LOG_FORMAT "[%s] "
 #define CLIENT_CONNECT_FORMAT "[CONNECTED]\n"
 #define CLIENT_DISCONNECT_FORMAT "[DISCONNECTED]\n"
 #define CLIENT_SEND_ACTION_FORMAT "%s: [%u]\n"

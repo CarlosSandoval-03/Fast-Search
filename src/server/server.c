@@ -15,26 +15,19 @@
 #include "../protocol/protocol.h"
 #include "../structures/structures.h"
 
-int server_start_listen(int server_fd, int max_conns)
-{
-	int listen_status = listen(server_fd, max_conns);
-	if (listen_status < 0) {
-		perror("LISTEN: ERROR WHEN START LISTENING\n");
-	}
+pthread_mutex_t mutex_conns;
+int ACTUAL_CONNS = 0;
 
-	return listen_status;
-}
-
-void create_queue_conn(int queue_fd[2], queue_conn_t *queue_conn_struct)
+void create_queue_conns(int queue_fd[2], queue_conn_t *queue_conn)
 {
 	int queue_status = pipe(queue_fd);
 	if (queue_status < 0) {
-		perror("QUEUE: ERROR WHEN CREATING THE QUEUE\n");
+		perror("CREATE_QUEUE_CONNS: ERROR WHEN CREATE THE QUEUE CONNECTIONS\n");
 		exit(EXIT_FAILURE);
 	}
 
-	queue_conn_struct->dequeue = queue_fd[0];
-	queue_conn_struct->enqueue = queue_fd[1];
+	queue_conn->dequeue = queue_fd[0];
+	queue_conn->enqueue = queue_fd[1];
 }
 
 void enqueue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn)
@@ -51,9 +44,25 @@ void dequeue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn)
 	if (queue_status < 0) {
 		perror("QUEUE: ERROR WHEN READING FROM THE QUEUE\n");
 	}
+
+	// Log the client connection (is executed by worker thread)
+	pthread_mutex_lock(&mutex_conns);
+	ACTUAL_CONNS++;
+	pthread_mutex_unlock(&mutex_conns);
 }
 
-void server_accept_client(int server_fd, queue_conn_t *queue_conns)
+int server_start_listen(int server_fd, int max_conns)
+{
+	int listen_status = listen(server_fd, max_conns);
+	if (listen_status < 0) {
+		perror("LISTEN: ERROR WHEN START LISTENING\n");
+		exit(EXIT_FAILURE);
+	}
+
+	return listen_status;
+}
+
+void server_accept_client(int server_fd, client_conn_t *client_conn, queue_conn_t *queue_conns)
 {
 	struct sockaddr_in client_conf;
 	socklen_t socklen = sizeof(client_conf);
@@ -64,7 +73,6 @@ void server_accept_client(int server_fd, queue_conn_t *queue_conns)
 	}
 
 	// Send the client cache conn to the queue
-	client_conn_t *client_conn = (client_conn_t *)malloc(sizeof(client_conn_t));
 	client_conn->client_fd = client_fd;
 
 	memset(client_conn->client_ip, 0, INET_ADDRSTRLEN);
@@ -82,70 +90,84 @@ void secure_disconnect_client(client_conn_t *client_conn)
 	int client_fd = client_conn->client_fd;
 	close(client_fd);
 	free(client_conn);
+
+	// Log the client disconnection (is disconnected by worker thread)
+	pthread_mutex_lock(&mutex_conns);
+	ACTUAL_CONNS--;
+	pthread_mutex_unlock(&mutex_conns);
 }
 
-void *thread_pool_worker(void *args)
+void *worker_routine(void *args)
 {
-	queue_conn_t *queue_conns = (queue_conn_t *)args;
-	while (1) {
-		client_conn_t *client_conn = (client_conn_t *)malloc(sizeof(client_conn_t));
-		client_conn->client_fd = 0;
-		memset(client_conn->client_ip, 0, INET_ADDRSTRLEN);
+	client_conn_t *client_conn = (client_conn_t *)args;
+	pthread_t self = pthread_self();
 
-		// Get client from queue
-		dequeue_conn(queue_conns, client_conn);
+	// Send server_conn_confirmation
+	secure_send_int(client_conn->client_fd, SERVER_CONN_CONFIRMATION);
 
-		// Send server_conn_confirmation
-		secure_send_int(client_conn->client_fd, SERVER_CONN_CONFIRMATION);
+	// Receive client_conn_confirmation
+	int client_msg;
+	secure_recv_int(client_conn->client_fd, &client_msg);
+	if (client_msg != CLIENT_CONN_CONFIRMATION) {
+		perror("CLIENT_CONN_CONFIRMATION: THE CLIENT DID NOT SEND THE CORRECT MESSAGE\n");
+		secure_disconnect_client(client_conn);
 
-		// Receive client_conn_confirmation
-		int client_msg;
-		secure_recv_int(client_conn->client_fd, &client_msg);
-		if (client_msg != CLIENT_CONN_CONFIRMATION) {
-			perror("CLIENT_CONN_CONFIRMATION: THE CLIENT DID NOT SEND THE CORRECT MESSAGE\n");
+		pthread_cancel(self);
+		return NULL;
+	}
 
-			// Attend the next client
-			secure_disconnect_client(client_conn);
-			continue;
-		}
+	// Start search process
+	cache_t *cache = (cache_t *)malloc(sizeof(cache_t));
+	cache->srcid = 0;
+	cache->dstid = 0;
+	cache->hod = -1;
 
-		// Start search process
-		cache_t *cache = (cache_t *)malloc(sizeof(cache_t));
-		cache->srcid = 0;
-		cache->dstid = 0;
-		cache->hod = -1;
+	int flag = EXIT_SUCCESS;
+	while (flag != EXIT_FAILURE) {
+		flag = search_actions(client_conn, cache);
+	}
 
-		int flag = EXIT_SUCCESS;
-		while (flag != EXIT_FAILURE) {
-			flag = search_actions(client_conn, cache);
-		}
+	free(cache);
+	secure_disconnect_client(client_conn);
+	pthread_cancel(self);
+	return NULL;
+}
 
-		free(cache);
+void create_worker_thread(client_conn_t *client_conn, pthread_t *worker_thread)
+{
+	int thread_status = pthread_create(worker_thread, NULL, worker_routine, (void *)client_conn);
+	if (thread_status < 0) {
+		perror("WORKER: ERROR WHEN CREATING THE WORKER THREAD\n");
 		secure_disconnect_client(client_conn);
 	}
 }
 
-pthread_t *create_thread_pool(queue_conn_t *queue_conns)
+void *scheduler_routine(void *args)
 {
-	pthread_t *thread_pool = (pthread_t *)malloc(sizeof(pthread_t) * THREAD_POOL_SIZE);
-	for (int i = 0; i < THREAD_POOL_SIZE; i++) {
-		int thread_status = pthread_create(&thread_pool[i], NULL, thread_pool_worker, (void *)queue_conns);
-		if (thread_status < 0) {
-			perror("THREAD_POOL: ERROR WHEN CREATING THE THREAD POOL\n");
-			exit(EXIT_FAILURE);
-		}
-	}
+	queue_conn_t *queue_conns = (queue_conn_t *)args;
 
-	return thread_pool;
-}
+	while (1) {
+		client_conn_t *client_conn = (client_conn_t *)malloc(sizeof(client_conn_t));
+		dequeue_conn(queue_conns, client_conn);
 
-void join_thread_pool(pthread_t *thread_pool)
-{
-	for (int i = 0; i < THREAD_POOL_SIZE; i++) {
-		int thread_status = pthread_join(thread_pool[i], NULL);
-		if (thread_status < 0) {
-			perror("THREAD_POOL: ERROR WHEN JOINING THE THREAD POOL\n");
+		if (ACTUAL_CONNS > MAX_CONNS) {
+			secure_send_int(client_conn->client_fd, SERVER_CONN_REJECTION);
+			secure_disconnect_client(client_conn);
 			continue;
 		}
+
+		pthread_t *worker_thread = (pthread_t *)malloc(sizeof(pthread_t));
+		create_worker_thread(client_conn, worker_thread);
+	}
+
+	return NULL;
+}
+
+void create_scheduler_thread(queue_conn_t *queue_conns, pthread_t *scheduler_thread)
+{
+	int thread_status = pthread_create(scheduler_thread, NULL, scheduler_routine, (void *)queue_conns);
+	if (thread_status < 0) {
+		perror("SCHEDULER: ERROR WHEN CREATING THE SCHEDULER THREAD\n");
+		exit(EXIT_FAILURE);
 	}
 }
