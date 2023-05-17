@@ -10,7 +10,7 @@ CLIENT_DEPENDENCIES=$(SRC_DIR)/protocol/protocol.h $(SRC_DIR)/client/client.h $(
 SERVER_DEPENDENCIES=$(SRC_DIR)/structures/structures.h $(SRC_DIR)/protocol/protocol.h $(SRC_DIR)/logger/logger.h $(SRC_DIR)/socket/socket.h $(SRC_DIR)/server/server.h $(SRC_DIR)/server/server.c
 
 # Build main
-build: create_build_dir create_obj_dir create_data_dir $(BUILD_DIR)/server $(BUILD_DIR)/client $(BUILD_DIR)/run_pre_process
+build: create_build_dir create_obj_dir create_data_dir clean_logs $(BUILD_DIR)/server $(BUILD_DIR)/client $(BUILD_DIR)/run_pre_process
 	@echo "Building pre_process script..."
 	@echo "Building server..."
 	@echo "Building client..."
@@ -84,3 +84,7 @@ clean_build:
 .PHONY: clean_processed_data
 clean_processed_data:
 	rm -rf $(DATA_DIR)/processed/*
+
+.PHONY: clean_logs
+clean_logs:
+	@rm -rf $(DATA_DIR)/logs/*
