@@ -104,3 +104,6 @@ obj/*
 
 data/logs
 data/logs/*
+
+data/processed
+data/processed/*

@@ -1,6 +1,6 @@
 FROM gcc:13.1.0
 
-WORKDIR /fast_search
+WORKDIR /home/fast_search
 COPY . .
 RUN make build
 RUN ./build/run_pre_process
