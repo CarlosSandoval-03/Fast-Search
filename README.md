@@ -59,3 +59,7 @@ After the process is finished, you need an active server instance. To establish 
 ./build/client 52.152.198.248
 ./build/client # Equivalent to using the IP "127.0.0.1"
 ```
+
+## Example Of How The Program Works
+
+![Sequence Diagram Of Fast Search](images/Sequence_Diagram.jpg)
