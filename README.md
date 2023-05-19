@@ -4,36 +4,58 @@ Author: csandovalc
 
 ## Description
 
-The project consists of developing a fast search system using C language processes, which allows the user to efficiently search a text file with many records.
+The project involves the development of a rapid search system using the C programming language in POSIX operating systems. This system enables users to efficiently search through a text file containing multiple records.
 
-The system uses indexed files to store relevant information from the text file and improve search time. The indexed files contain relevant information for the search.
+To optimize search speed, the system employs indexed files, which store pertinent information from the text file.
 
-For inter-process communication, the system uses pipes, which are a communication mechanism between processes that allows efficient and secure exchange of information. Processes are responsible for searching and reading the indexed files, while pipes are used to transmit information between them.
+To establish a client-server architecture, two main programs are created to facilitate communication via text strings transmitted through sockets.
 
-The purpose of this project is to deepen knowledge about the operating system and apply the multiple utilities offered by POSIX.
+The server is responsible for searching and reading the indexed files, while the client initiates the required requests.
 
-## Run
+The primary objective of this project is to deepen our understanding of the operating system and apply the diverse utilities offered by POSIX.
 
-### Prerequisites
+## Project Setup
 
-If you do not have the processed file:
-
-1. Download the data at the following link: [data in zip format](https://drive.google.com/file/d/1YtSBskKg5gR7Uylk8TZU_c2MkEJKwwbg/view?usp=sharing).
-2. Unzip the file "uber_data.zip" and move the csv to "data/raw/".
-3. Execute on terminal:
+First, make a copy of the repository in its latest version main. Once cloned, navigate to the project folder using the following command:
 
 ```shell
-make pre_process && ./build/run_pre_process
+# Using ssh
+git clone git@github.com:CarlosSandoval-03/Fast-Search.git && cd Fast-Search
+
+#Using https
+git clone https://github.com/CarlosSandoval-03/Fast-Search.git && cd Fast-Search
 ```
 
-### Main program
+### Run Server
 
-Once you have the preprocessed files, you can start the execution of the main program:
-
-1. Execute on terminal:
+To run the server, you need to download the [docker image of the project](https://hub.docker.com/r/carlossandoval03/fast-search) using the following command:
 
 ```shell
-make build && ./build/main
+docker pull carlossandoval03/fast-search:latest
 ```
 
-2. Follow the program instructions
+To start the server in a Docker instance using docker-compose, make sure to adjust the downloaded image with the one specified in the `docker-compose.yaml` file if necessary:
+
+```shell
+docker-compose up -d
+```
+
+Once the process is completed, the server will be running on port `8080`.
+
+### Run Client
+
+To run the client, you need to build the project first. This can be done using the following command:
+
+```shell
+make build
+```
+
+After the process is finished, you need an active server instance. To establish a connection to this server, use the following command:
+
+```shell
+./build/client <server-ip>
+
+# Examples
+./build/client 52.152.198.248
+./build/client # Equivalent to using the IP "127.0.0.1"
+```
