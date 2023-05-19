@@ -78,5 +78,6 @@ int socket_connect_client(int client_fd, char *host, unsigned int port)
 		exit(EXIT_FAILURE);
 	}
 
+	printf("[INFO] CONECTADO A %s:%u\n", host, port);
 	return connect_status;
 }
