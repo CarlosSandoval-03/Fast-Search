@@ -1,3 +1,10 @@
+/******************************************************************************************
+ * Copyright (C) 2023 by Carlos Sandoval                                                  *
+ *                                                                                        *
+ * This file is part of Fast-Search.                                                      *
+ * @author Carlos Santiago Sandoval Casallas, https://github.com/CarlosSandoval-03        *
+ * Released under the terms of the MIT license, see: https://opensource.org/license/mit/  *
+ ******************************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +15,10 @@
 #include "./socket.h"
 #include "../server/server.h"
 
+/**
+ * @brief Create a socket object
+ * @return int File descriptor of the socket
+ */
 int create_socket()
 {
 	int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -19,9 +30,15 @@ int create_socket()
 	return socket_fd;
 }
 
+/**
+ * @brief Bind a server socket to a port
+ * @param server_fd File descriptor of the socket
+ * @param port Port to bind the socket
+ * @return int Status of the bind
+ */
 int socket_bind_server(int server_fd, unsigned int port)
 {
-	// Enable option SO_REUSEADDR
+	// Enable option SO_REUSEADDR - Avoids the error "Address already in use"
 	int optval = 1;
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
@@ -40,6 +57,13 @@ int socket_bind_server(int server_fd, unsigned int port)
 	return bind_status;
 }
 
+/**
+ * @brief Configure the socket to connect to a server
+ * @param client_fd File descriptor of the socket
+ * @param host Host to connect
+ * @param port Port to connect
+ * @return int Status of the connection
+ */
 int socket_connect_client(int client_fd, char *host, unsigned int port)
 {
 	struct sockaddr_in client_conf;

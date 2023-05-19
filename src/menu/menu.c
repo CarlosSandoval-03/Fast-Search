@@ -43,8 +43,7 @@ long get_num_from_input(long min, long max)
  * @param option An integer representing the option chosen by the user in the menu.
  * @param socket_fd The socket file descriptor.
  * @return void
- * @note Sends an option to the search process through a pipe, and based on the option, prompts the user to input a number
- * or retrieves the mean travel time from the search process and prints it to the console.
+ * @note This function uses the secure_send_int() and secure_send_long() functions to send data to the server.
  */
 void menu_actions(int option, int socket_fd)
 {

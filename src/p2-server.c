@@ -1,3 +1,10 @@
+/******************************************************************************************
+ * Copyright (C) 2023 by Carlos Sandoval                                                  *
+ *                                                                                        *
+ * This file is part of Fast-Search.                                                      *
+ * @author Carlos Santiago Sandoval Casallas, https://github.com/CarlosSandoval-03        *
+ * Released under the terms of the MIT license, see: https://opensource.org/license/mit/  *
+ ******************************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,7 +33,6 @@ int main(int argc, char *argv[])
 	socket_bind_server(server_fd, port);
 
 	// Start listening for connections
-	printf("START TO LISTEN IN PORT: %u\n", port); // TODO: Remove
 	server_start_listen(server_fd, MAX_CONNS);
 
 	// Create a scheduler thread to handle the queue of connections

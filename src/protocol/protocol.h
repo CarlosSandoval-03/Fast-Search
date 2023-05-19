@@ -1,11 +1,15 @@
+/******************************************************************************************
+ * Copyright (C) 2023 by Carlos Sandoval                                                  *
+ *                                                                                        *
+ * This file is part of Fast-Search.                                                      *
+ * @author Carlos Santiago Sandoval Casallas, https://github.com/CarlosSandoval-03        *
+ * Released under the terms of the MIT license, see: https://opensource.org/license/mit/  *
+ ******************************************************************************************/
 #ifndef _PROTOCOL_H_
 #define _PROTOCOL_H_
 
-/**
- * The protocol uses hexadecimal numbers to identify the type of message.
- * The size of messages is: int type
- */
-
+// The protocol uses hexadecimal numbers to identify the type of message.
+// The first digit identifies the sender, and the second digit identifies the type of message.
 #define SERVER_CONN_CONFIRMATION 0x01
 #define SERVER_CONN_REJECTION 0x02
 #define SERVER_SEND_MESSAGE 0x03

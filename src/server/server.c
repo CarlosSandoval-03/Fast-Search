@@ -1,3 +1,10 @@
+/******************************************************************************************
+ * Copyright (C) 2023 by Carlos Sandoval                                                  *
+ *                                                                                        *
+ * This file is part of Fast-Search.                                                      *
+ * @author Carlos Santiago Sandoval Casallas, https://github.com/CarlosSandoval-03        *
+ * Released under the terms of the MIT license, see: https://opensource.org/license/mit/  *
+ ******************************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,9 +22,15 @@
 #include "../protocol/protocol.h"
 #include "../structures/structures.h"
 
+// Mutex of conns counter
 pthread_mutex_t mutex_conns;
 int ACTUAL_CONNS = 0;
 
+/**
+ * @brief Create a queue conns object
+ * @param queue_fd Array of file descriptors
+ * @param queue_conn Struct containing the queue connections (empty)
+ */
 void create_queue_conns(int queue_fd[2], queue_conn_t *queue_conn)
 {
 	int queue_status = pipe(queue_fd);
@@ -30,6 +43,11 @@ void create_queue_conns(int queue_fd[2], queue_conn_t *queue_conn)
 	queue_conn->enqueue = queue_fd[1];
 }
 
+/**
+ * @brief Enqueue a client connection to the queue
+ * @param queue_conns Struct containing the queue pipe file descriptors
+ * @param client_conn Struct containing the client connection data
+ */
 void enqueue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn)
 {
 	int queue_status = write(queue_conns->enqueue, client_conn, sizeof(*client_conn));
@@ -38,6 +56,11 @@ void enqueue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn)
 	}
 }
 
+/**
+ * @brief Dequeue a client connection from the queue
+ * @param queue_conns Struct containing the queue pipe file descriptors
+ * @param client_conn Struct containing the client connection data
+ */
 void dequeue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn)
 {
 	int queue_status = read(queue_conns->dequeue, client_conn, sizeof(*client_conn));
@@ -51,6 +74,12 @@ void dequeue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn)
 	pthread_mutex_unlock(&mutex_conns);
 }
 
+/**
+ * @brief Start the listening process of the server
+ * @param server_fd Server socket file descriptor
+ * @param max_conns Maximum number of connections
+ * @return int Status of the listen process
+ */
 int server_start_listen(int server_fd, int max_conns)
 {
 	int listen_status = listen(server_fd, max_conns);
@@ -62,6 +91,12 @@ int server_start_listen(int server_fd, int max_conns)
 	return listen_status;
 }
 
+/**
+ * @brief Accept a client connection and send it to the queue
+ * @param server_fd Server socket file descriptor
+ * @param client_conn Struct to save the client connection data
+ * @param queue_conns Struct containing the queue pipe file descriptors
+ */
 void server_accept_client(int server_fd, client_conn_t *client_conn, queue_conn_t *queue_conns)
 {
 	struct sockaddr_in client_conf;
@@ -83,6 +118,10 @@ void server_accept_client(int server_fd, client_conn_t *client_conn, queue_conn_
 	log_client_connect(client_conn->client_ip);
 }
 
+/**
+ * @brief Disconnect a client connection and free the memory
+ * @param client_conn Struct containing the client connection data
+ */
 void secure_disconnect_client(client_conn_t *client_conn)
 {
 	log_client_disconnect(client_conn->client_ip);
@@ -97,6 +136,12 @@ void secure_disconnect_client(client_conn_t *client_conn)
 	pthread_mutex_unlock(&mutex_conns);
 }
 
+/**
+ * @brief Worker thread routine - Manage the client connection
+ * @param args Struct containing the client connection data
+ * @note This method is executed by each worker thread
+ * @warning In case of error, the thread is canceled and the client is disconnected
+ */
 void *worker_routine(void *args)
 {
 	client_conn_t *client_conn = (client_conn_t *)args;
@@ -133,6 +178,12 @@ void *worker_routine(void *args)
 	return NULL;
 }
 
+/**
+ * @brief Create a worker thread object, and save in the method arguments
+ * @param client_conn Struct containing the client connection data
+ * @param worker_thread Pointer to the worker thread object
+ * @warning In case of error, the client connection is disconnected
+ */
 void create_worker_thread(client_conn_t *client_conn, pthread_t *worker_thread)
 {
 	int thread_status = pthread_create(worker_thread, NULL, worker_routine, (void *)client_conn);
@@ -142,6 +193,11 @@ void create_worker_thread(client_conn_t *client_conn, pthread_t *worker_thread)
 	}
 }
 
+/**
+ * @brief Scheduler thread routine - Manage queue of client connections and create worker threads
+ * @param args Struct containing the queue pipe file descriptors
+ * @note This method is executed by the scheduler thread
+ */
 void *scheduler_routine(void *args)
 {
 	queue_conn_t *queue_conns = (queue_conn_t *)args;
@@ -163,6 +219,12 @@ void *scheduler_routine(void *args)
 	return NULL;
 }
 
+/**
+ * @brief Create a scheduler thread object, and save in the method arguments
+ * @param queue_conns Struct containing the queue pipe file descriptors
+ * @param scheduler_thread Pointer to the scheduler thread object
+ * @warning In case of error, the program is terminated
+ */
 void create_scheduler_thread(queue_conn_t *queue_conns, pthread_t *scheduler_thread)
 {
 	int thread_status = pthread_create(scheduler_thread, NULL, scheduler_routine, (void *)queue_conns);
