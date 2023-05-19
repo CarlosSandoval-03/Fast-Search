@@ -21,12 +21,15 @@
  */
 long get_num_from_input(long min, long max)
 {
-	long num = 0;
+	long num = -1;
 
 	do {
-		scanf("%ld", &num);
-		while (getc(stdin) != '\n') {
-		} // Clear buffer if user registers a string
+		int scan_status = scanf("%ld", &num);
+		while (getc(stdin) != '\n')
+			; // Clear buffer if user registers a string
+
+		if (scan_status == EOF)
+			continue; // If scanf fails, try again
 
 		if (min <= num && num <= max)
 			return num;
