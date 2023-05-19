@@ -21,12 +21,15 @@
  */
 long get_num_from_input(long min, long max)
 {
-	long num = 0;
+	long num = -1;
 
 	do {
-		scanf("%ld", &num);
-		while (getc(stdin) != '\n') {
-		} // Clear buffer if user registers a string
+		int scan_status = scanf("%ld", &num);
+		while (getc(stdin) != '\n')
+			; // Clear buffer if user registers a string
+
+		if (scan_status == EOF)
+			continue; // If scanf fails, try again
 
 		if (min <= num && num <= max)
 			return num;
@@ -40,8 +43,7 @@ long get_num_from_input(long min, long max)
  * @param option An integer representing the option chosen by the user in the menu.
  * @param socket_fd The socket file descriptor.
  * @return void
- * @note Sends an option to the search process through a pipe, and based on the option, prompts the user to input a number
- * or retrieves the mean travel time from the search process and prints it to the console.
+ * @note This function uses the secure_send_int() and secure_send_long() functions to send data to the server.
  */
 void menu_actions(int option, int socket_fd)
 {
@@ -70,14 +72,19 @@ void menu_actions(int option, int socket_fd)
 		message = "\nTiempo de viaje medio: ";
 		break;
 	case EXIT_OPTION:
+		printf("\n[INFO] Desconectando...\n");
 	default:
 		return;
 	}
+
+	if (option == SEARCH_OPTION)
+		printf("\n[INFO] Se ha enviado la opcion: %d al servidor, esperando resultados...\n", option);
 
 	printf("%s", message);
 	if (option != SEARCH_OPTION) {
 		long num = get_num_from_input(min, max);
 		secure_send_long(socket_fd, num);
+		printf("\n[INFO] Se ha enviado la opcion: %d con el valor %ld al servidor\n", option, num);
 		return;
 	}
 
@@ -109,5 +116,9 @@ void main_menu(int socket_fd)
 		option = get_num_from_input(SRCID_OPTION, EXIT_OPTION);
 
 		menu_actions(option, socket_fd);
+
+		// Wait for user to press any key to continue
+		printf("Presione ENTER para continuar...\n");
+		getchar();
 	} while (option != EXIT_OPTION);
 }

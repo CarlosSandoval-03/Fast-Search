@@ -1,11 +1,16 @@
+/******************************************************************************************
+ * Copyright (C) 2023 by Carlos Sandoval                                                  *
+ *                                                                                        *
+ * This file is part of Fast-Search.                                                      *
+ * @author Carlos Santiago Sandoval Casallas, https://github.com/CarlosSandoval-03        *
+ * Released under the terms of the MIT license, see: https://opensource.org/license/mit/  *
+ ******************************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdint.h>
-#include <sys/types.h>
+#include <signal.h>
 #include <netinet/in.h>
-#include <sys/socket.h>
 #include "./menu/menu.h"
 #include "./client/client.h"
 #include "./socket/socket.h"
@@ -33,8 +38,12 @@ int main(int argc, char *argv[])
 	// Wait server conn confirmation
 	int server_msg;
 	secure_recv_int(client_fd, &server_msg);
-	if (server_msg != SERVER_CONN_CONFIRMATION) {
+	if (server_msg != SERVER_CONN_CONFIRMATION && server_msg != SERVER_CONN_REJECTION) {
 		perror("CLIENT: ERROR WHEN CONNECTING TO THE SERVER\n");
+		exit(EXIT_FAILURE);
+	}
+	if (server_msg == SERVER_CONN_REJECTION) {
+		printf("CLIENT: THE SERVER REJECT THE CONNECTION\n");
 		exit(EXIT_FAILURE);
 	}
 
