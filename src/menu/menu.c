@@ -118,7 +118,7 @@ void main_menu(int socket_fd)
 		menu_actions(option, socket_fd);
 
 		// Wait for user to press any key to continue
-		printf("Presione cualquier tecla para continuar...\n");
+		printf("Presione ENTER para continuar...\n");
 		getchar();
 	} while (option != EXIT_OPTION);
 }

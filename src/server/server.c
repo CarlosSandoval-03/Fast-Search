@@ -113,9 +113,6 @@ void server_accept_client(int server_fd, client_conn_t *client_conn, queue_conn_
 	memset(client_conn->client_ip, 0, INET_ADDRSTRLEN);
 	inet_ntop(AF_INET, &(client_conf.sin_addr), (client_conn->client_ip), INET_ADDRSTRLEN);
 	enqueue_conn(queue_conns, client_conn);
-
-	// Log the client connection
-	log_client_connect(client_conn->client_ip);
 }
 
 /**
@@ -124,8 +121,6 @@ void server_accept_client(int server_fd, client_conn_t *client_conn, queue_conn_
  */
 void secure_disconnect_client(client_conn_t *client_conn)
 {
-	log_client_disconnect(client_conn->client_ip);
-
 	int client_fd = client_conn->client_fd;
 	close(client_fd);
 	free(client_conn);
@@ -154,12 +149,13 @@ void *worker_routine(void *args)
 	int client_msg;
 	secure_recv_int(client_conn->client_fd, &client_msg);
 	if (client_msg != CLIENT_CONN_CONFIRMATION) {
-		perror("CLIENT_CONN_CONFIRMATION: THE CLIENT DID NOT SEND THE CORRECT MESSAGE\n");
 		secure_disconnect_client(client_conn);
-
 		pthread_cancel(self);
 		return NULL;
 	}
+
+	// Log the client connection
+	log_client_connect(client_conn->client_ip);
 
 	// Start search process
 	cache_t *cache = (cache_t *)malloc(sizeof(cache_t));
@@ -171,6 +167,9 @@ void *worker_routine(void *args)
 	while (flag != EXIT_FAILURE) {
 		flag = search_actions(client_conn, cache);
 	}
+
+	// Log the client disconnection
+	log_client_disconnect(client_conn->client_ip);
 
 	free(cache);
 	secure_disconnect_client(client_conn);
