@@ -73,14 +73,19 @@ void menu_actions(int option, int socket_fd)
 		message = "\nTiempo de viaje medio: ";
 		break;
 	case EXIT_OPTION:
+		printf("[INFO] Desconectando...\n");
 	default:
 		return;
 	}
+
+	if (option == SEARCH_OPTION)
+		printf("[INFO] Se ha enviado la opcion: %d al servidor, esperando resultados...\n", option);
 
 	printf("%s", message);
 	if (option != SEARCH_OPTION) {
 		long num = get_num_from_input(min, max);
 		secure_send_long(socket_fd, num);
+		printf("[INFO] Se ha enviado la opcion: %d con el valor %ld al servidor\n", option, num);
 		return;
 	}
 
