@@ -1,5 +1,14 @@
 # Fast Search - Operating Systems
 
+- [Fast Search - Operating Systems](#fast-search---operating-systems)
+  - [Description](#description)
+  - [Project Setup](#project-setup)
+    - [Run Server](#run-server)
+    - [Run Client](#run-client)
+  - [Example Of How The Program Works](#example-of-how-the-program-works)
+  - [User Documentation](#user-documentation)
+  - [Dev Documentation](#dev-documentation)
+
 Author: csandovalc
 
 ## Description
@@ -63,3 +72,39 @@ After the process is finished, you need an active server instance. To establish 
 ## Example Of How The Program Works
 
 ![Sequence Diagram Of Fast Search](images/Sequence_Diagram.jpg)
+
+## User Documentation
+
+To begin, run the client program in the terminal. When executing the command, specify the IP address of the server you want to connect to. If it is a local instance, you don't need to specify anything:
+
+```shell
+./build/client # Connect to 127.0.0.1
+./build/client 52.152.198.248 # Connect to 52.152.198.248
+```
+
+If the given IP address is correct, the program will display the server's IP address and port to which you have connected, along with the main menu, which will appear as follows:
+
+```text
+Bienvenido
+
+1. Ingresar origen
+2. Ingresar destino
+3. Ingresar hora
+4. Buscar tiempo de viaje medio
+5. Salir
+
+Opcion:
+```
+
+Here, based on the query you want to make, you should enter the corresponding option. If you select options `1-3`, you should provide the value related to your query. For example:
+
+```text
+Opcion: 1
+Ingrese ID del origen: 462
+```
+
+The system will display confirmation messages about the request made and prompt you to press the `ENTER` key to continue.
+
+When you want to disconnect, simply choose option `5` from the main menu.
+
+## Dev Documentation
