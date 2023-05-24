@@ -17,8 +17,8 @@
     - [Logger](#logger)
       - [Logger Dependencies](#logger-dependencies)
       - [Logger Macros](#logger-macros)
-      - [Global Variable](#global-variable)
-      - [Functions](#functions)
+      - [Logger Global Variables](#logger-global-variables)
+      - [Logger Functions](#logger-functions)
     - [Menu](#menu)
       - [Menu Dependencies](#menu-dependencies)
       - [Menu Macros](#menu-macros)
@@ -33,10 +33,30 @@
       - [Protocol Macros](#protocol-macros)
       - [Protocol Functions](#protocol-functions)
     - [Search](#search)
+      - [Search Dependencies](#search-dependencies)
+      - [Search Functions](#search-functions)
     - [Server](#server)
+      - [Server Dependencies](#server-dependencies)
+      - [Server Macros](#server-macros)
+      - [Server Global Variables](#server-global-variables)
+      - [Server Functions](#server-functions)
     - [Socket](#socket)
+      - [Socket Dependencies](#socket-dependencies)
+      - [Socket Functions](#socket-functions)
     - [Structures](#structures)
+      - [Structures Dependencies](#structures-dependencies)
+      - [Structures Macros](#structures-macros)
+      - [Structures Structures](#structures-structures)
+      - [Structures Functions](#structures-functions)
     - [Run Pre Process](#run-pre-process)
+      - [Run Pre Process Dependencies](#run-pre-process-dependencies)
+      - [Run Pre Process Flow](#run-pre-process-flow)
+    - [Run Server](#run-server-1)
+      - [Run Server Dependencies](#run-server-dependencies)
+      - [Run Server Flow](#run-server-flow)
+    - [Run Client](#run-client-1)
+      - [Run Client Dependencies](#run-client-dependencies)
+      - [Run Client Flow](#run-client-flow)
 
 Author: csandovalc
 
@@ -261,11 +281,11 @@ The `logger.h` header file contains function declarations and definitions for lo
 - `CLIENT_REQUEST_ACTION_FORMAT`: The format string for the client request action log entry.
 - `CLIENT_REQUEST_ERROR_FORMAT`: The format string for the client request error log entry.
 
-#### Global Variable
+#### Logger Global Variables
 
 - `mutex`: Mutex for synchronizing access to the log file.
 
-#### Functions
+#### Logger Functions
 
 ```c
 void write_date(FILE *file);
@@ -616,20 +636,654 @@ void secure_recv_float(int socket_fd, float *value);
 
 ### Search
 
+This header file declares the function `search_actions` used for performing search actions based on selected options and cache data.
+
+#### Search Dependencies
+
+- stdio.h
+- stdlib.h
+- unistd.h
+- [search.h](#search)
+- [menu.h](#menu)
+- [file.h](#file)
+- [logger.h](#logger)
+- [protocol.h](#protocol)
+- [structures.h](#structures)
+
+#### Search Functions
+
+```c
+int have_all_data(cache_t *cache);
+```
+
+- **Description:** Check if all the necessary data is in the cache.
+- **Parameters:**
+  - `cache` The cache to check.
+- **Return:** Returns 1 if all the necessary data is in the cache, -1 otherwise.
+
+```c
+int search_actions(client_conn_t *client_conn, cache_t *cache);
+```
+
+- **Description:** Search actions based on selected option and cache data.
+- **Parameters:**
+  - `socket_fd`: The socket file descriptor.
+  - `cache`: Struct containing the cache data.
+- **Return:** Returns `EXIT_SUCCESS` or `EXIT_FAILURE` depending on the selected option.
+
 ---
 
 ### Server
+
+#### Server Dependencies
+
+- stdio.h
+- stdlib.h
+- unistd.h
+- string.h
+- stdint.h
+- pthread.h
+- sys/types.h
+- sys/socket.h
+- netinet/in.h
+- arpa/inet.h
+- [server.h](#server)
+- [search.h](#search)
+- [socket.h](#socket)
+- [logger.h](#logger)
+- [protocol.h](#protocol)
+- [structures.h](#structures)
+
+#### Server Macros
+
+- `MAX_CONNS`: Maximum number of connections allowed by the server.
+- `HOST`: The host IP address.
+- `PORT`: The port number to listen on.
+
+#### Server Global Variables
+
+- `mutex_conns`: Mutex for synchronizing access to the conns counter.
+- `ACTUAL_CONNS`: Number of active connections.
+
+#### Server Functions
+
+```c
+void create_queue_conns(int queue_fd[2], queue_conn_t *queue_conn);
+```
+
+- **Description:** Create a queue conns object.
+- **Parameters:**
+  - `queue_fd`: Array of file descriptors.
+  - `queue_conn`: Struct containing the queue connections (empty).
+
+```c
+void enqueue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn);
+```
+
+- **Description:** Enqueue a client connection to the queue.
+- **Parameters:**
+  - `queue_conns`: Struct containing the queue pipe file descriptors.
+  - `client_conn`: Struct containing the client connection data.
+
+```c
+void dequeue_conn(queue_conn_t *queue_conns, client_conn_t *client_conn);
+```
+
+- **Description:** Dequeue a client connection from the queue.
+- **Parameters:**
+  - `queue_conns`: Struct containing the queue pipe file descriptors.
+  - `client_conn`: Struct containing the client connection data.
+
+```c
+int server_start_listen(int server_fd, int max_conns);
+```
+
+- **Description:** Start the listening process of the server.
+- **Parameters:**
+  - `server_fd`: Server socket file descriptor.
+  - `max_conns`: Maximum number of connections.
+- **Return:** Status of the listen process.
+
+```c
+void server_accept_client(int server_fd, client_conn_t *client_conn, queue_conn_t *queue_conns);
+```
+
+- **Description:** Accept a client connection and send it to the queue.
+- **Parameters:**
+  - `server_fd`: Server socket file descriptor.
+  - `client_conn`: Struct to save the client connection data.
+  - `queue_conns`: Struct containing the queue pipe file descriptors.
+
+```c
+void secure_disconnect_client(client_conn_t *client_conn);
+```
+
+- **Description:** Disconnect a client connection and free the memory.
+- **Parameters:**
+  - `client_conn`: Struct containing the client connection data.
+
+```c
+void *worker_routine(void *args);
+```
+
+- **Description:** Worker thread routine - Manage the client connection.
+- **Parameters:**
+  - `args`: Struct pointer containing the client connection data.
+- **Notes:**
+  - This method is executed by each worker thread.
+  - In case of error, the thread is canceled and the client is disconnected.
+
+```c
+void create_worker_thread(client_conn_t *client_conn, pthread_t *worker_thread);
+```
+
+- **Description:** Create a worker thread object, and save in the method arguments.
+- **Parameters:**
+  - `client_conn`: Struct pointer containing the client connection data.
+  - `worker_thread`: Pointer to the worker thread object.
+- **Note:** In case of error, the client connection is disconnected.
+
+```c
+void *scheduler_routine(void *args);
+```
+
+- **Description:** Scheduler thread routine - Manage queue of client connections and create worker threads.
+- **Parameters:**
+  - `args`: Struct pointer containing the queue pipe file descriptors.
+- **Note:** This method is executed by the scheduler thread.
+
+```c
+void create_scheduler_thread(queue_conn_t *queue_conns, pthread_t *scheduler_thread);
+```
+
+- **Description:** Create a scheduler thread object, and save in the method arguments.
+- **Parameters:**
+  - `queue_conns`: Struct pointer containing the queue pipe file descriptors.
+  - `scheduler_thread`: Pointer to the scheduler thread object.
+- **Note:** In case of error, the program is terminated.
 
 ---
 
 ### Socket
 
+This header file contains the declarations of functions related to socket operations.
+
+#### Socket Dependencies
+
+- stdio.h
+- stdlib.h
+- string.h
+- sys/types.h
+- sys/socket.h
+- netinet/in.h
+- arpa/inet.h
+- [server.h](#server)
+
+#### Socket Functions
+
+```c
+int create_socket();
+```
+
+- **Description:** Create a socket object.
+- **Return:** File descriptor of the socket.
+
+```c
+int socket_bind_server(int server_fd, unsigned int port);
+```
+
+- **Description:** Bind a server socket to a port.
+- **Parameters:**
+  - `server_fd`: File descriptor of the socket.
+  - `port`: Port to bind the socket.
+- **Return:** Status of the bind.
+
+```c
+int socket_connect_client(int client_fd, char *host, unsigned int port);
+```
+
+- **Description:** Configure the socket to connect to a server.
+- **Parameters:**
+  - `client_fd`: File descriptor of the socket.
+  - `host`: Host to connect.
+  - `port`: Port to connect.
+- **Return:** Status of the connection.
+
 ---
 
 ### Structures
 
----
+This header file contains the declarations of various data structures used in the program.
+
+#### Structures Dependencies
+
+- stdio.h
+- stdlib.h
+- arpa/inet.h
+- [file.h](#file)
+
+#### Structures Macros
+
+- `HASH_SIZE`: The size of the hash table.
+
+#### Structures Structures
+
+```c
+// Structure of the linked node.
+typedef struct Node {
+  unsigned short dstid;   // The destination ID.
+  unsigned char hod;      // The hour of the day.
+  float mean_travel_time; // The mean travel time.
+  struct Node *next;      // Pointer to the next node in the linked list.
+} node_t;
+```
+
+```c
+// Hash structure.
+typedef struct {
+  node_t *headers_list[HASH_SIZE]; // Array of linked list heads for the hash table.
+} hash_t;
+```
+
+```c
+// Hash elements that allow indexing the position of the pointer of each list.
+typedef struct {
+  unsigned short srcid; // The source ID.
+  long start_pos;       // The starting position.
+} index_t;
+```
+
+```c
+// Storage structure for storage of user choices.
+typedef struct {
+  unsigned short srcid; // The source ID.
+  unsigned short dstid; // The destination ID.
+  char hod;             // The hour of the day.
+} cache_t;
+```
+
+```c
+// Characteristics of the client connection.
+typedef struct {
+  int client_fd;                    // The client file descriptor.
+  char client_ip[INET_ADDRSTRLEN];  // The client IP address.
+} client_conn_t;
+```
+
+```c
+// Abstraction system for connection queue.
+typedef struct {
+  int enqueue;  // The enqueue operation.
+  int dequeue;  // The dequeue operation.
+} queue_conn_t;
+```
+
+#### Structures Functions
+
+```c
+node_t *new_node();
+```
+
+- **Description:** Creates a new node.
+- **Return:** Return a pointer to the newly created node.
+
+```c
+node_t *push(node_t **head, unsigned short dstid, unsigned char hod, float mean_travel_time);
+```
+
+- **Description:** Add a new node to the beginning of a linked list.
+- **Parameters:**
+  - `head`: Pointer to a pointer to the head of the linked list.
+  - `dstid`: The destination ID of the new node.
+  - `hod`: The hour of day of the new node.
+  - `mean_travel_time`: The mean travel time of the new node.
+- **Return:** Pointer to the new node.
+
+```c
+hash_t *new_hash()
+```
+
+- **Description:** Creates a new hash table.
+- **Return:** A pointer to the newly created hash table.
+- **Note:** If the allocation fails, the function exits the program with an error message.
+
+```c
+int hash(int srcid)
+```
+
+- **Description:** Calculates the hash value for a given source ID.
+- **Parameters:**
+  - `srcid` The source ID to hash.
+- **Return:** The hash value.
+- **Note:** If the source ID is less than 1 or greater than the size of the hash table, the program will exit with `EXIT_FAILURE`.
+
+```c
+int insert(hash_t *ptr_hash, int srcid, unsigned short dstid, unsigned char hod, float mean_travel_time);
+```
+
+- **Description:** Inserts a new node with the given parameters to the hash table.
+- **Parameters:**
+  - `ptr_hash`: Pointer to the hash table.
+  - `srcid`: The source id of the new node.
+  - `dstid`: The destination id of the new node.
+  - `hod`: The hour of the day of the new node.
+  - `mean_travel_time`: The mean travel time of the new node.
+- **Return:** The index in the hash table where the new node was inserted.
+
+```c
+index_t *new_index(unsigned short srcid, long start_pos)
+```
+
+- **Description:** Creates a new index_t struct and returns a pointer to it.
+- **Parameters:**
+  - `srcid`: The source ID for the index.
+  - `start_pos`: The starting position for the index.
+- **Return:** index_t\* A pointer to the new index_t struct.
+
+```c
+void free_hash(hash_t *ptr_hash)
+```
+
+- **Description:** Frees the memory allocated for the hash table and all its nodes.
+- **Parameters:**
+  - `ptr_hash`: A pointer to the hash table.a
 
 ### Run Pre Process
+
+#### Run Pre Process Dependencies
+
+- stdio.h
+- stdlib.h
+- [file.h](#file)
+- [pre_process.h](#pre-process)
+- [structures.h](#structures)
+
+#### Run Pre Process Flow
+
+The code begins with several include statements, importing necessary standard C libraries (`stdio.h`, `stdlib.h`) and custom header files (`file.h`, `pre_process.h`, `structures.h`) located in specific directories using relative paths.
+
+```c
+int main()
+{
+  FILE *data_fp = open_file(DEFAULT_PATH_DATA, "r");
+  FILE *list_fp = open_file(DEFAULT_PATH_LIST, "wb");
+  FILE *hash_fp = open_file(DEFAULT_PATH_HASH, "wb");
+```
+
+The `main()` function is the entry point of the program. It starts by declaring and initializing three `FILE` pointers: `data_fp`, `list_fp`, and `hash_fp`. These pointers will be used to work with files.
+
+The `open_file()` function is called to open three files (`DEFAULT_PATH_DATA`, `DEFAULT_PATH_LIST`, `DEFAULT_PATH_HASH`) in different modes (`"r"` for reading, `"wb"` for writing in binary mode). The returned `FILE` pointers are assigned to the corresponding variables.
+
+```c
+  remove_line(data_fp);
+
+  hash_t *hash_ptr = new_hash();
+  char buffer[BUFFER_SIZE];
+
+  printf("Processing data...\n");
+  while (get_data(data_fp, buffer, BUFFER_SIZE) != NULL) {
+    process_line(buffer, hash_ptr);
+  }
+```
+
+The `remove_line()` function is called to remove the first line of the `data_fp` file.
+
+A pointer `hash_ptr` of type `hash_t` is declared and assigned the return value of the `new_hash()` function. This function dynamically allocates memory for a new hash table and initializes it.
+
+A character array `buffer` is declared with a size of `BUFFER_SIZE`. This buffer will be used to read data from the file.
+
+A `while` loop is used to read data from `data_fp` using the `get_data()` function. The loop continues until there is no more data to read (`get_data()` returns `NULL`). Inside the loop, each line of data is processed using the `process_line()` function, passing the `buffer` and `hash_ptr` as arguments.
+
+```c
+  write_hash(hash_ptr, hash_fp, list_fp);
+  printf("Done!\n");
+```
+
+Once the data processing loop completes, the `write_hash()` function is called to write the contents of the `hash_ptr` hash table to the `hash_fp` and `list_fp` files.
+
+A simple "Done!" message is printed to the console.
+
+```c
+  free_hash(hash_ptr);
+  fclose(data_fp);
+  fclose(list_fp);
+  fclose(hash_fp);
+
+  return EXIT_SUCCESS;
+}
+```
+
+The dynamically allocated memory for the hash table `hash_ptr` is freed using the `free_hash()` function.
+
+All the opened files (`data_fp`, `list_fp`, `hash_fp`) are closed using the `fclose()` function.
+
+Finally, the program exits with a return value of `EXIT_SUCCESS`, indicating successful execution.
+
+Overall, the code reads data from a file, processes it using a hash table, and writes the results to other files.
+
+### Run Server
+
+#### Run Server Dependencies
+
+- stdio.h
+- stdlib.h
+- unistd.h
+- string.h
+- pthread.h
+- sys/socket.h
+- [server.h](#server)
+- [socket.h](#socket)
+
+#### Run Server Flow
+
+The code begins with several include statements, importing necessary standard C libraries (`stdio.h`, `stdlib.h`, `unistd.h`, `string.h`, `pthread.h`, `sys/socket.h`) and custom header files (`server.h`, `socket.h`) located in specific directories using relative paths.
+
+```c
+int main(int argc, char *argv[])
+{
+  // Get the port from the command line arguments or use the default value
+  unsigned int port = PORT;
+  if (argc >= 2) {
+    char *end_ptr;
+    port = (unsigned int)strtol(argv[1], &end_ptr, 10);
+  }
+```
+
+The `main()` function is the entry point of the program. It takes command line arguments `argc` (argument count) and `argv` (argument vector).
+
+The code checks if there is at least one command line argument (`argc >= 2`). If present, it converts the first argument (`argv[1]`) to an unsigned integer using `strtol()`, and assigns it to the variable `port`. If no argument is provided, it uses a default value stored in `PORT`.
+
+```c
+  // Create queue of connections
+  int queue_fd[2];
+  queue_conn_t *queue_conn = (queue_conn_t *)malloc(sizeof(queue_conn_t));
+  create_queue_conns(queue_fd, queue_conn);
+```
+
+An array `queue_fd` of two integers is declared. It will be used for inter-process communication between the server and the scheduler thread.
+
+A pointer `queue_conn` of type `queue_conn_t` is declared and dynamically allocated memory for it using `malloc()`. This structure holds information about the queue of connections.
+
+The `create_queue_conns()` function is called, passing `queue_fd` and `queue_conn` as arguments. It sets up the necessary components for the inter-process communication.
+
+```c
+  // Create the server socket and bind it to the port
+  int server_fd = create_socket();
+  socket_bind_server(server_fd, port);
+```
+
+An integer variable `server_fd` is declared and assigned the value returned by the `create_socket()` function. This function creates a socket and returns the file descriptor for the socket.
+
+The `socket_bind_server()` function is called, passing `server_fd` and `port` as arguments. It binds the server socket to the specified port.
+
+```c
+  // Start listening for connections
+  server_start_listen(server_fd, MAX_CONNS);
+```
+
+The `server_start_listen()` function is called, passing `server_fd` and `MAX_CONNS` as arguments. It starts listening for incoming connections on the server socket.
+
+```c
+  // Create a scheduler thread to handle the queue of connections
+  pthread_t *scheduler_thread = (pthread_t *)malloc(sizeof(pthread_t));
+  create_scheduler_thread(queue_conn, scheduler_thread);
+```
+
+A pointer `scheduler_thread` of type `pthread_t` is declared and dynamically allocated memory for it using `malloc()`. This thread will handle the queue of connections.
+
+The `create_scheduler_thread()` function is called, passing `queue_conn` and `scheduler_thread` as arguments. It creates the scheduler thread and sets it up to handle the queue of connections.
+
+```c
+  while (1) {
+    client_conn_t *client_conn = (client_conn_t *)malloc(sizeof(client_conn_t));
+    server_accept_client(server_fd, client_conn, queue_conn);
+  }
+```
+
+Within an infinite `while` loop, the code continuously accepts incoming client connections using the `server_accept_client()` function. It passes the server file descriptor `server_fd`, a dynamically allocated `client_conn_t` structure `client_conn`, and the `queue_conn` structure to handle the queue of connections.
+
+This loop ensures that the server keeps accepting new client connections and adding them to the queue for processing.
+
+```c
+  // Cleanup and exit the program
+  free(scheduler_thread);
+  free(queue_conn);
+  close(server_fd);
+
+  return EXIT_SUCCESS;
+}
+```
+
+After the infinite loop, the program performs necessary cleanup operations:
+
+- The memory allocated for the `scheduler_thread` is freed using `free()`.
+- The memory allocated for the `queue_conn` structure is freed using `free()`.
+- The server socket `server_fd` is closed using `close()`.
+
+Finally, the program returns `EXIT_SUCCESS` to indicate successful execution.
+
+Overall, this code sets up a server that listens for incoming client connections, accepts the connections, and adds them to a queue for processing. It uses sockets for communication and employs multithreading to handle the queue of connections efficiently.
+
+### Run Client
+
+#### Run Client Dependencies
+
+- stdio.h
+- stdlib.h
+- unistd.h
+- string.h
+- signal.h
+- netinet/in.h
+- [menu.h](#menu)
+- [client.h](#client)
+- [socket.h](#socket)
+- [protocol.h](#protocol)
+
+#### Run Client Flow
+
+Sure! Here's the description of the provided code:
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <signal.h>
+#include <netinet/in.h>
+#include "./menu/menu.h"
+#include "./client/client.h"
+#include "./socket/socket.h"
+#include "./protocol/protocol.h"
+```
+
+The code includes necessary header files for standard input/output, standard library functions, system calls, signal handling, network-related structures, and custom header files for menu, client, socket, and protocol functionalities.
+
+```c
+int main(int argc, char *argv[])
+{
+  int client_fd = create_socket();
+```
+
+The `main()` function is the entry point of the program. It starts by creating a client socket using the `create_socket()` function, which returns a file descriptor (`client_fd`) representing the socket.
+
+```c
+  // Get the host and port from the command line arguments or use the default values
+  char *host = (char *)malloc(sizeof(char) * INET_ADDRSTRLEN);
+  unsigned int port = SERVER_PORT;
+  strcpy(host, SERVER_HOST);
+  if (argc >= 2) {
+    strncpy(host, argv[1], INET_ADDRSTRLEN);
+  }
+  if (argc >= 3) {
+    char *end_ptr;
+    port = (unsigned int)strtol(argv[2], &end_ptr, 10);
+  }
+```
+
+The code retrieves the host and port information from the command line arguments. If provided, the values are copied into the `host` variable and `port` variable, respectively. Otherwise, default values are used (`SERVER_HOST` and `SERVER_PORT`).
+
+```c
+  // Connect to the server
+  socket_connect_client(client_fd, host, port);
+```
+
+The client socket connects to the server using the `socket_connect_client()` function. It passes the `client_fd`, `host`, and `port` to establish the connection.
+
+```c
+  // Wait server conn confirmation
+  int server_msg;
+  secure_recv_int(client_fd, &server_msg);
+  if (server_msg != SERVER_CONN_CONFIRMATION && server_msg != SERVER_CONN_REJECTION) {
+    perror("CLIENT: ERROR WHEN CONNECTING TO THE SERVER\n");
+    exit(EXIT_FAILURE);
+  }
+  if (server_msg == SERVER_CONN_REJECTION) {
+    printf("CLIENT: THE SERVER REJECT THE CONNECTION\n");
+    exit(EXIT_FAILURE);
+  }
+```
+
+The client waits to receive a connection confirmation message from the server using the `secure_recv_int()` function. If the received message is neither a connection confirmation nor a rejection, an error is displayed, and the program exits. If the server rejects the connection, an appropriate message is printed, and the program exits.
+
+```c
+  // Send client conn confirmation
+  server_msg = CLIENT_CONN_CONFIRMATION;
+  secure_send_int(client_fd, server_msg);
+```
+
+The client sends a connection confirmation message to the server using the `secure_send_int()` function. It sets the `server_msg` to `CLIENT_CONN_CONFIRMATION` before sending.
+
+```c
+  // Show main menu
+  main_menu(client_fd);
+```
+
+The main menu is displayed using the `main_menu()` function. It takes the `client_fd` as an argument to perform menu-related operations.
+
+```c
+  close(client_fd);
+  free(host);
+  return EXIT_SUCCESS;
+}
+```
+
+After the menu operations, the client socket is closed using `close()`, and the dynamically allocated memory for the `host` variable is freed using `free()`. The program then returns `EXIT_SUCCESS` to indicate successful execution.
+
+In summary, this code represents a client program that creates a socket, connects to a server using the provided host and port, waits for a connection confirmation from the server, sends a connection confirmation to the server, and displays a main menu for further interactions with the server. It utilizes custom functions from the `socket`, `protocol`, `client`, and `menu` modules to handle the network communication and user interactions.
+
+The main steps in the program are as follows:
+
+1. Create a client socket using `create_socket()`.
+2. Retrieve the host and port information from the command line arguments or use default values.
+3. Connect to the server using `socket_connect_client()` with the client socket, host, and port.
+4. Wait for a connection confirmation message from the server using `secure_recv_int()`.
+5. Check the received message to ensure it is a valid connection confirmation or rejection.
+6. If the connection is rejected, print an appropriate message and exit the program.
+7. Send a connection confirmation message to the server using `secure_send_int()`.
+8. Display the main menu using `main_menu()` to interact with the server.
+9. Close the client socket with `close()` and free the memory allocated for the host variable using `free()`.
+10. Return `EXIT_SUCCESS` to indicate successful execution of the program.
+
+Overall, this code sets up a client-side application to establish a connection with a server, handle the initial handshake, and provide a menu-based interface for further communication with the server.
 
 ---
