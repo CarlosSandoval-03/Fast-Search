@@ -1181,8 +1181,6 @@ Overall, this code sets up a server that listens for incoming client connections
 
 #### Run Client Flow
 
-Sure! Here's the description of the provided code:
-
 ```c
 #include <stdio.h>
 #include <stdlib.h>
